@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: admin
+
+  datasource:
+    password: 123
+    username: sa
+    url: jdbc:mysql://localhost:3306/mydb
+  jpa:
+    hibernate:
+      ddl-auto: create
+  mvc:
+    servlet:
+      path: /api
