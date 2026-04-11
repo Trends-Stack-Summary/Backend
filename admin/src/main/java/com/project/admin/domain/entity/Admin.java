@@ -1,14 +1,13 @@
-package com.project.admin.domain;
+package com.project.admin.domain.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class Admin {
 
 
@@ -26,12 +25,14 @@ public class Admin {
 
 
 
-    @Builder
-      private  Admin(String name, String loginId, String password) {
 
-        this.name= name;
-        this.loginId = loginId;
-        this.password = password;
+      public static  Admin create(String name, String loginId, String password) {
+
+       return  Admin.builder()
+               .name(name)
+               .loginId(loginId)
+               .password(password)
+               .build();
 
 
     }

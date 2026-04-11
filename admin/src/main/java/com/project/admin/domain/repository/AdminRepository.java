@@ -1,10 +1,9 @@
-package com.project.admin.repository;
+package com.project.admin.domain.repository;
 
-import com.project.admin.domain.Admin;
+import com.project.admin.domain.entity.Admin;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
