@@ -7,6 +7,7 @@ public record AdminLoginResult(
         String name
 ) {
     public static AdminLoginResult from(Admin admin) {
+
         return new AdminLoginResult(admin.getId() , admin.getName());
     }
 }
