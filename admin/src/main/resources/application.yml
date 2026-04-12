@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: admin
+  datasource:
+    password:
+    username: sa
+    url: jdbc:h2:tcp://localhost/~/admin
+  jpa:
+    hibernate:
+      ddl-auto: create
+  mvc:
+    servlet:
+      path: /api
