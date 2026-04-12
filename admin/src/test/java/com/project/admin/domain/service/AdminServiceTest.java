@@ -1,11 +1,11 @@
 package com.project.admin.domain.service;
 
-import com.project.admin.domain.dto.login.AdminLoginCommand;
-import com.project.admin.domain.dto.login.AdminLoginResult;
-import com.project.admin.domain.dto.signup.AdminSignupCommand;
+import com.project.admin.domain.dto.login.AdminLoginRequest;
+import com.project.admin.domain.dto.login.LoginResponse;
+import com.project.admin.domain.dto.signup.AdminSignupRequest;
 import com.project.admin.domain.repository.AdminRepository;
-import com.project.admin.domain.service.AdminService;
 import com.project.admin.exception.AdminException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,17 +24,22 @@ class AdminServiceTest {
     @Autowired
     private AdminRepository adminRepository;
 
+    AdminSignupRequest request;
+
+    @BeforeEach
+    void setUp() {
+
+        request = new AdminSignupRequest("name", "admin123", "password");
+        adminService.createAdmin(request.name(), request.loginId(), request.password());
+
+    }
+
     @Test
     @DisplayName("관리자 생성 성공")
     void createAdmin() {
 
 
-        AdminSignupCommand command = new AdminSignupCommand("name","admin123","password");
-
-        adminService.createAdmin(command);
-
         assertThat(adminRepository.existsByLoginId("admin123")).isTrue();
-
 
 
     }
@@ -44,15 +49,10 @@ class AdminServiceTest {
     void createAdmin_fail() throws IllegalStateException {
 
 
-        AdminSignupCommand command = new AdminSignupCommand("name","admin123","password");
-
-        adminService.createAdmin(command);
-
         assertThat(adminRepository.existsByLoginId("admin123")).isTrue();
 
-        assertThatThrownBy(() -> adminService.createAdmin(command)).isInstanceOf(AdminException.class)
-                        .hasMessage("이미 존재하는 아이디 입니다");
-
+        assertThatThrownBy(() -> adminService.createAdmin(request.name(), request.loginId(), request.password())).isInstanceOf(AdminException.class)
+                .hasMessage("이미 존재하는 아이디 입니다");
 
 
     }
@@ -61,31 +61,22 @@ class AdminServiceTest {
     @DisplayName("로그인 성공")
     void loginAdmin() {
 
-        AdminSignupCommand command = new AdminSignupCommand("name","admin123","password");
 
-        adminService.createAdmin(command);
+        LoginResponse response = adminService.loginAdmin(request.loginId(), request.password());
 
-        AdminLoginCommand login = new AdminLoginCommand("admin123","password");
-
-        AdminLoginResult adminLoginResult = adminService.loginAdmin(login);
-
-
-        assertThat(adminLoginResult.name()).isEqualTo(command.name());
+        assertThat(response.name()).isEqualTo(request.name());
 
 
     }
+
     @Test
     @DisplayName("로그인 실패")
     void loginAdmin_fail() {
 
-        AdminSignupCommand command = new AdminSignupCommand("name","admin123","password");
 
-        adminService.createAdmin(command);
+        AdminLoginRequest login = new AdminLoginRequest("admin", "password");
 
-
-        AdminLoginCommand login = new AdminLoginCommand("admin","password");
-
-        assertThatThrownBy(()-> adminService.loginAdmin(login)).isInstanceOf(AdminException.class)
+        assertThatThrownBy(() -> adminService.loginAdmin(login.loginId(), login.password())).isInstanceOf(AdminException.class)
                 .hasMessage("아이디 또는 비밀번호가 일치하지 않습니다");
 
 
@@ -95,14 +86,10 @@ class AdminServiceTest {
     @DisplayName("로그인 실패")
     void loginAdmin_fail2() {
 
-        AdminSignupCommand command = new AdminSignupCommand("name","admin123","password");
 
-        adminService.createAdmin(command);
+        AdminLoginRequest login = new AdminLoginRequest("admin123", "123");
 
-
-        AdminLoginCommand login = new AdminLoginCommand("admin123","passwor");
-
-        assertThatThrownBy(()-> adminService.loginAdmin(login)).isInstanceOf(AdminException.class)
+        assertThatThrownBy(() -> adminService.loginAdmin(login.loginId(), login.password())).isInstanceOf(AdminException.class)
                 .hasMessage("아이디 또는 비밀번호가 일치하지 않습니다");
 
 

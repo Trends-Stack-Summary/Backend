@@ -1,8 +1,7 @@
 package com.project.admin.domain.controller;
 
 import com.project.admin.domain.dto.login.AdminLoginRequest;
-import com.project.admin.domain.dto.login.AdminLoginResult;
-import com.project.admin.domain.dto.signup.AdminSignupCommand;
+import com.project.admin.domain.dto.login.LoginResponse;
 import com.project.admin.domain.dto.signup.AdminSignupRequest;
 import com.project.admin.domain.service.AdminService;
 import com.project.admin.exception.AdminException;
@@ -17,7 +16,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -36,16 +34,18 @@ class AdminControllerTest {
     @Autowired
     ObjectMapper objectMapper;
 
+
+
     @Test
     @DisplayName("로그인 성공")
     void login() throws  Exception {
 
         AdminLoginRequest request = new AdminLoginRequest("admin123", "password");
-        AdminLoginResult result = new AdminLoginResult(1L, "name");
+        LoginResponse result = new LoginResponse(1L, "name");
 
-        given(adminService.loginAdmin(any())).willReturn(result);
+        given(adminService.loginAdmin(any(),any())).willReturn(result);
 
-        mockMvc.perform(post("/api/admin/login")
+        mockMvc.perform(post("/admin/signin")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -59,9 +59,9 @@ class AdminControllerTest {
 
         AdminLoginRequest request = new AdminLoginRequest("admin123", "password");
 
-        given(adminService.loginAdmin(any())).willThrow(new AdminException(ErrorCode.LOGIN_FAILED));
+        given(adminService.loginAdmin(any(),any())).willThrow(new AdminException(ErrorCode.LOGIN_FAILED));
 
-        mockMvc.perform(post("/api/admin/login")
+        mockMvc.perform(post("/admin/signin")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isUnauthorized());
@@ -74,7 +74,7 @@ class AdminControllerTest {
 
         AdminSignupRequest request=  new AdminSignupRequest("name","admin123","password");
 
-        mockMvc.perform(post("/api/admin/signup")
+        mockMvc.perform(post("/admin/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated());
@@ -88,9 +88,9 @@ class AdminControllerTest {
         AdminSignupRequest request=  new AdminSignupRequest("name","admin123","password");
 
         doThrow(new AdminException(ErrorCode.DUPLICATE_LOGIN_ID))
-                .when(adminService).createAdmin(any());
+                .when(adminService).createAdmin(any(),any(),any());
 
-        mockMvc.perform(post("/api/admin/signup")
+        mockMvc.perform(post("/admin/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
