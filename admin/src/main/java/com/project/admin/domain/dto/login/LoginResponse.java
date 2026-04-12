@@ -1,11 +1,9 @@
 package com.project.admin.domain.dto.login;
 
-public record LoginResponse (
-      Long adminId,
-     String name
-) {
+import com.project.admin.domain.entity.Admin;
 
- public    static  LoginResponse from(AdminLoginResult admin ) {
-        return new LoginResponse(admin.id(), admin.name());
-    }
+public record LoginResponse(
+        Long adminId,
+        String name
+) {
 }
