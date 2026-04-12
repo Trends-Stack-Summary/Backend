@@ -1,9 +1,7 @@
 package com.project.admin.domain.service;
 
+import com.project.admin.domain.dto.login.LoginResponse;
 import com.project.admin.domain.entity.Admin;
-import com.project.admin.domain.dto.login.AdminLoginCommand;
-import com.project.admin.domain.dto.login.AdminLoginResult;
-import com.project.admin.domain.dto.signup.AdminSignupCommand;
 import com.project.admin.domain.repository.AdminRepository;
 import com.project.admin.exception.AdminException;
 import com.project.admin.exception.ErrorCode;
@@ -22,19 +20,19 @@ public class AdminService {
 
 
     @Transactional
-    public void createAdmin(AdminSignupCommand command) {
+    public void createAdmin(String name, String loginId, String password) {
 
 
-        if(adminRepository.existsByLoginId(command.loginId())) {
+        if (adminRepository.existsByLoginId(loginId)) {
 
-            throw  new AdminException(ErrorCode.DUPLICATE_LOGIN_ID);
+            throw new AdminException(ErrorCode.DUPLICATE_LOGIN_ID);
         }
 
 
-        String password = passwordEncoder.encode(command.password());
+        String encodedPassword = passwordEncoder.encode(password);
 
 
-        Admin admin = Admin.create(command.name(), command.loginId(),password);
+        Admin admin = Admin.create(name, loginId, encodedPassword);
 
         adminRepository.save(admin);
 
@@ -42,20 +40,19 @@ public class AdminService {
     }
 
 
-    public AdminLoginResult loginAdmin(AdminLoginCommand command) {
+    public LoginResponse loginAdmin(String loginId, String password) {
 
 
-        Admin admin = adminRepository.findByLoginId(command.loginId()).orElseThrow(() -> new AdminException(ErrorCode.LOGIN_FAILED));
+        Admin admin = adminRepository.findByLoginId(loginId).orElseThrow(() -> new AdminException(ErrorCode.LOGIN_FAILED));
 
-        if(!passwordEncoder.matches(command.password(), admin.getPassword())) {
+        if (!passwordEncoder.matches(password, admin.getPassword())) {
 
             throw new AdminException(ErrorCode.LOGIN_FAILED);
 
 
-
         }
 
-        return AdminLoginResult.from(admin);
+        return new  LoginResponse(admin.getId(), admin.getName());
     }
 
 }
