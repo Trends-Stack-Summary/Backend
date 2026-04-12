@@ -6,40 +6,35 @@ import lombok.*;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 public class Admin {
 
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private  Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(nullable = false)
     private String name;
 
     @Column(unique = true, nullable = false)
     private String loginId;
-@Column(nullable = false)
-    private  String password;
+    @Column(nullable = false)
+    private String password;
 
+    private Admin(String name, String loginId, String password) {
 
-
-
-
-      public static  Admin create(String name, String loginId, String password) {
-
-       return  Admin.builder()
-               .name(name)
-               .loginId(loginId)
-               .password(password)
-               .build();
-
-
+        this.name = name;
+        this.loginId = loginId;
+        this.password = password;
     }
 
 
+    public static Admin create(String name, String loginId, String password) {
+
+        return new Admin(name, loginId, password);
 
 
+    }
 
 
 }
