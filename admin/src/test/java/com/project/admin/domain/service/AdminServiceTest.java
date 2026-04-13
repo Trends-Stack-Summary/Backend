@@ -1,10 +1,10 @@
 package com.project.admin.domain.service;
 
-import com.project.admin.domain.dto.login.AdminLoginRequest;
-import com.project.admin.domain.dto.login.LoginResponse;
-import com.project.admin.domain.dto.signup.AdminSignupRequest;
+import com.project.admin.dto.AdminSigninRequest;
+import com.project.admin.dto.AdminSigninResponse;
+import com.project.admin.dto.AdminSignupRequest;
 import com.project.admin.domain.repository.AdminRepository;
-import com.project.admin.exception.AdminException;
+import com.project.admin.exception.admin.AdminException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -59,10 +59,10 @@ class AdminServiceTest {
 
     @Test
     @DisplayName("로그인 성공")
-    void loginAdmin() {
+    void adminSignin() {
 
 
-        LoginResponse response = adminService.loginAdmin(request.loginId(), request.password());
+        AdminSigninResponse response = adminService.adminSignin(request.loginId(), request.password());
 
         assertThat(response.name()).isEqualTo(request.name());
 
@@ -71,12 +71,12 @@ class AdminServiceTest {
 
     @Test
     @DisplayName("로그인 실패")
-    void loginAdmin_fail() {
+    void adminSignin_fail() {
 
 
-        AdminLoginRequest login = new AdminLoginRequest("admin", "password");
+        AdminSigninRequest login = new AdminSigninRequest("admin", "password");
 
-        assertThatThrownBy(() -> adminService.loginAdmin(login.loginId(), login.password())).isInstanceOf(AdminException.class)
+        assertThatThrownBy(() -> adminService.adminSignin(login.loginId(), login.password())).isInstanceOf(AdminException.class)
                 .hasMessage("아이디 또는 비밀번호가 일치하지 않습니다");
 
 
@@ -84,12 +84,12 @@ class AdminServiceTest {
 
     @Test
     @DisplayName("로그인 실패")
-    void loginAdmin_fail2() {
+    void adminSignin_fail2() {
 
 
-        AdminLoginRequest login = new AdminLoginRequest("admin123", "123");
+        AdminSigninRequest login = new AdminSigninRequest("admin123", "123");
 
-        assertThatThrownBy(() -> adminService.loginAdmin(login.loginId(), login.password())).isInstanceOf(AdminException.class)
+        assertThatThrownBy(() -> adminService.adminSignin(login.loginId(), login.password())).isInstanceOf(AdminException.class)
                 .hasMessage("아이디 또는 비밀번호가 일치하지 않습니다");
 
 

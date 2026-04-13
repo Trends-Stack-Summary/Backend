@@ -1,11 +1,11 @@
 package com.project.admin.domain.controller;
 
-import com.project.admin.domain.dto.login.AdminLoginRequest;
-import com.project.admin.domain.dto.login.LoginResponse;
-import com.project.admin.domain.dto.signup.AdminSignupRequest;
+import com.project.admin.dto.AdminSigninRequest;
+import com.project.admin.dto.AdminSigninResponse;
+import com.project.admin.dto.AdminSignupRequest;
 import com.project.admin.domain.service.AdminService;
-import com.project.admin.exception.AdminException;
-import com.project.admin.exception.ErrorCode;
+import com.project.admin.exception.admin.AdminErrorCode;
+import com.project.admin.exception.admin.AdminException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
@@ -35,19 +36,18 @@ class AdminControllerTest {
     ObjectMapper objectMapper;
 
 
-
     @Test
     @DisplayName("로그인 성공")
-    void login() throws  Exception {
+    void signin() throws Exception {
 
-        AdminLoginRequest request = new AdminLoginRequest("admin123", "password");
-        LoginResponse result = new LoginResponse(1L, "name");
+        AdminSigninRequest request = new AdminSigninRequest("admin123", "password");
+        AdminSigninResponse result = new AdminSigninResponse(1L, "name");
 
-        given(adminService.loginAdmin(any(),any())).willReturn(result);
+        given(adminService.adminSignin(any(), any())).willReturn(result);
 
         mockMvc.perform(post("/admin/signin")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("name"));
 
@@ -55,11 +55,11 @@ class AdminControllerTest {
 
     @Test
     @DisplayName("로그인 실패")
-    void login_fail() throws  Exception {
+    void signin_fail() throws Exception {
 
-        AdminLoginRequest request = new AdminLoginRequest("admin123", "password");
+        AdminSigninRequest request = new AdminSigninRequest("admin123", "password");
 
-        given(adminService.loginAdmin(any(),any())).willThrow(new AdminException(ErrorCode.LOGIN_FAILED));
+        given(adminService.adminSignin(any(), any())).willThrow(new AdminException(AdminErrorCode.LOGIN_FAILED));
 
         mockMvc.perform(post("/admin/signin")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -70,9 +70,9 @@ class AdminControllerTest {
 
     @Test
     @DisplayName("회원가입 성공")
-    void  signup() throws  Exception {
+    void signup() throws Exception {
 
-        AdminSignupRequest request=  new AdminSignupRequest("name","admin123","password");
+        AdminSignupRequest request = new AdminSignupRequest("name", "admin123", "password");
 
         mockMvc.perform(post("/admin/signup")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -83,12 +83,12 @@ class AdminControllerTest {
 
     @Test
     @DisplayName("회원가입 실패")
-    void  signup_fail() throws  Exception {
+    void signup_fail() throws Exception {
 
-        AdminSignupRequest request=  new AdminSignupRequest("name","admin123","password");
+        AdminSignupRequest request = new AdminSignupRequest("name", "admin123", "password");
 
-        doThrow(new AdminException(ErrorCode.DUPLICATE_LOGIN_ID))
-                .when(adminService).createAdmin(any(),any(),any());
+        doThrow(new AdminException(AdminErrorCode.DUPLICATE_LOGIN_ID))
+                .when(adminService).createAdmin(any(), any(), any());
 
         mockMvc.perform(post("/admin/signup")
                         .contentType(MediaType.APPLICATION_JSON)
