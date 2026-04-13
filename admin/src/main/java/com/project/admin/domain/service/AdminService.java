@@ -1,11 +1,16 @@
 package com.project.admin.domain.service;
 
-import com.project.admin.domain.dto.login.LoginResponse;
+import com.project.admin.dto.AdminSigninResponse;
 import com.project.admin.domain.entity.Admin;
 import com.project.admin.domain.repository.AdminRepository;
-import com.project.admin.exception.AdminException;
-import com.project.admin.exception.ErrorCode;
+import com.project.admin.exception.admin.AdminErrorCode;
+import com.project.admin.exception.admin.AdminException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +22,7 @@ public class AdminService {
 
     private final AdminRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
 
 
     @Transactional
@@ -25,7 +31,7 @@ public class AdminService {
 
         if (adminRepository.existsByLoginId(loginId)) {
 
-            throw new AdminException(ErrorCode.DUPLICATE_LOGIN_ID);
+            throw new AdminException(AdminErrorCode.DUPLICATE_LOGIN_ID);
         }
 
 
@@ -40,19 +46,21 @@ public class AdminService {
     }
 
 
-    public LoginResponse loginAdmin(String loginId, String password) {
+    public AdminSigninResponse adminSignin(String loginId, String password) {
 
 
-        Admin admin = adminRepository.findByLoginId(loginId).orElseThrow(() -> new AdminException(ErrorCode.LOGIN_FAILED));
-
-        if (!passwordEncoder.matches(password, admin.getPassword())) {
-
-            throw new AdminException(ErrorCode.LOGIN_FAILED);
+        try {
 
 
+            Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginId, password));
+
+            SecurityContextHolder.getContext().setAuthentication(auth);
+        } catch (BadCredentialsException e) {
+            throw new AdminException(AdminErrorCode.LOGIN_FAILED);
         }
+        Admin admin = adminRepository.findByLoginId(loginId).orElseThrow(() -> new AdminException(AdminErrorCode.LOGIN_FAILED));
 
-        return new  LoginResponse(admin.getId(), admin.getName());
+        return new AdminSigninResponse(admin.getId(), admin.getName());
     }
 
 }
