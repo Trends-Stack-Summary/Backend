@@ -1,6 +1,6 @@
-package com.project.admin.exception.admin;
+package com.project.admin.domain.exception;
 
-import com.project.admin.exception.base.BaseErrorCode;
+import com.project.admin.exception.BaseErrorCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

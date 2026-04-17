@@ -1,6 +1,5 @@
-package com.project.admin.exception.common;
+package com.project.admin.exception;
 
-import com.project.admin.exception.base.BaseErrorCode;
 import lombok.Getter;
 
 @Getter
@@ -19,5 +18,9 @@ public class ErrorResponse {
     public static ErrorResponse from(BaseErrorCode errorCode) {
 
         return new ErrorResponse(errorCode.status().value(), errorCode.message());
+    }
+
+    public static  ErrorResponse of (int status , String message) {
+        return new ErrorResponse(status, message);
     }
 }

@@ -1,4 +1,4 @@
-package com.project.admin.exception.base;
+package com.project.admin.exception;
 
 import org.springframework.http.HttpStatus;
 

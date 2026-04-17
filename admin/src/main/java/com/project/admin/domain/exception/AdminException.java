@@ -1,6 +1,6 @@
-package com.project.admin.exception.admin;
+package com.project.admin.domain.exception;
 
-import com.project.admin.exception.base.BaseException;
+import com.project.admin.exception.BaseException;
 import lombok.Getter;
 
 @Getter
