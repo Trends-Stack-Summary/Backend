@@ -1,10 +1,10 @@
 package com.project.admin.domain.service;
 
-import com.project.admin.dto.AdminSigninRequest;
-import com.project.admin.dto.AdminSigninResponse;
-import com.project.admin.dto.AdminSignupRequest;
+import com.project.admin.domain.controller.dto.AdminSigninRequest;
+import com.project.admin.domain.controller.dto.AdminSigninResponse;
+import com.project.admin.domain.controller.dto.AdminSignupRequest;
 import com.project.admin.domain.repository.AdminRepository;
-import com.project.admin.exception.admin.AdminException;
+import com.project.admin.domain.exception.AdminException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -57,41 +57,5 @@ class AdminServiceTest {
 
     }
 
-    @Test
-    @DisplayName("로그인 성공")
-    void adminSignin() {
 
-
-        AdminSigninResponse response = adminService.adminSignin(request.loginId(), request.password());
-
-        assertThat(response.name()).isEqualTo(request.name());
-
-
-    }
-
-    @Test
-    @DisplayName("로그인 실패")
-    void adminSignin_fail() {
-
-
-        AdminSigninRequest login = new AdminSigninRequest("admin", "password");
-
-        assertThatThrownBy(() -> adminService.adminSignin(login.loginId(), login.password())).isInstanceOf(AdminException.class)
-                .hasMessage("아이디 또는 비밀번호가 일치하지 않습니다");
-
-
-    }
-
-    @Test
-    @DisplayName("로그인 실패")
-    void adminSignin_fail2() {
-
-
-        AdminSigninRequest login = new AdminSigninRequest("admin123", "123");
-
-        assertThatThrownBy(() -> adminService.adminSignin(login.loginId(), login.password())).isInstanceOf(AdminException.class)
-                .hasMessage("아이디 또는 비밀번호가 일치하지 않습니다");
-
-
-    }
 }

@@ -1,17 +1,25 @@
 package com.project.admin.domain.controller;
 
-import com.project.admin.dto.AdminSigninRequest;
-import com.project.admin.dto.AdminSigninResponse;
-import com.project.admin.dto.AdminSignupRequest;
+import com.project.admin.domain.controller.dto.AdminSigninRequest;
+import com.project.admin.domain.controller.dto.AdminSigninResponse;
+import com.project.admin.domain.controller.dto.AdminSignupRequest;
+import com.project.admin.domain.entity.Admin;
 import com.project.admin.domain.service.AdminService;
-import com.project.admin.exception.admin.AdminErrorCode;
-import com.project.admin.exception.admin.AdminException;
+import com.project.admin.domain.exception.AdminErrorCode;
+import com.project.admin.domain.exception.AdminException;
+import com.project.admin.security.userdatails.AdminUserDetailsService;
+import com.project.admin.security.userdatails.CustomAdminDetails;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
@@ -23,7 +31,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(AdminController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 class AdminControllerTest {
 
     @Autowired
@@ -35,17 +44,35 @@ class AdminControllerTest {
     @Autowired
     ObjectMapper objectMapper;
 
+    @MockitoBean
+    AdminUserDetailsService adminUserDetailsService;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    Admin admin;
+
+    @BeforeEach
+    void init() {
+
+        admin = Admin.create("name",
+                "admin123",
+                passwordEncoder.encode("password"));
+
+    }
+
 
     @Test
     @DisplayName("로그인 성공")
     void signin() throws Exception {
 
         AdminSigninRequest request = new AdminSigninRequest("admin123", "password");
-        AdminSigninResponse result = new AdminSigninResponse(1L, "name");
 
-        given(adminService.adminSignin(any(), any())).willReturn(result);
 
-        mockMvc.perform(post("/admin/signin")
+        CustomAdminDetails details = new CustomAdminDetails(admin);
+        given(adminUserDetailsService.loadUserByUsername(request.loginId())).willReturn(details);
+
+        mockMvc.perform(post("/api/admin/signin")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -53,20 +80,6 @@ class AdminControllerTest {
 
     }
 
-    @Test
-    @DisplayName("로그인 실패")
-    void signin_fail() throws Exception {
-
-        AdminSigninRequest request = new AdminSigninRequest("admin123", "password");
-
-        given(adminService.adminSignin(any(), any())).willThrow(new AdminException(AdminErrorCode.LOGIN_FAILED));
-
-        mockMvc.perform(post("/admin/signin")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isUnauthorized());
-
-    }
 
     @Test
     @DisplayName("회원가입 성공")
