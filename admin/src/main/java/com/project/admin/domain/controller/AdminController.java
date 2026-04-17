@@ -1,8 +1,6 @@
 package com.project.admin.domain.controller;
 
-import com.project.admin.dto.AdminSigninResponse;
-import com.project.admin.dto.AdminSigninRequest;
-import com.project.admin.dto.AdminSignupRequest;
+import com.project.admin.domain.controller.dto.AdminSignupRequest;
 import com.project.admin.domain.service.AdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,13 +25,4 @@ public class AdminController {
     }
 
 
-    @PostMapping("/admin/signin")
-    public ResponseEntity<AdminSigninResponse> signin(@Valid @RequestBody AdminSigninRequest loginRequest) {
-
-        AdminSigninResponse loginAdmin = adminService.adminSignin(loginRequest.loginId(), loginRequest.password());
-
-
-        return ResponseEntity.ok(loginAdmin);
-
-    }
 }
