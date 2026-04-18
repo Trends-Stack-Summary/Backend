@@ -1,4 +1,4 @@
-package com.project.admin.domain.repository;
+package com.project.admin.repository;
 
 import com.project.admin.domain.entity.Admin;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,4 +1,4 @@
-package com.project.admin.domain.controller.dto;
+package com.project.admin.controller.dto;
 
 public record AdminSigninResponse(
         Long adminId,

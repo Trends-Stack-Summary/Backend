@@ -1,7 +1,7 @@
-package com.project.admin.domain.service;
+package com.project.admin.service;
 
 import com.project.admin.domain.entity.Admin;
-import com.project.admin.domain.repository.AdminRepository;
+import com.project.admin.repository.AdminRepository;
 import com.project.admin.domain.exception.AdminErrorCode;
 import com.project.admin.domain.exception.AdminException;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,7 @@
-package com.project.admin.domain.controller;
+package com.project.admin.controller;
 
-import com.project.admin.domain.controller.dto.AdminSignupRequest;
-import com.project.admin.domain.service.AdminService;
+import com.project.admin.controller.dto.AdminSignupRequest;
+import com.project.admin.service.AdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
