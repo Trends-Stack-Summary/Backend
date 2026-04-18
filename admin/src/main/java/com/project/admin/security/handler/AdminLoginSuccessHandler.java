@@ -1,6 +1,6 @@
 package com.project.admin.security.handler;
 
-import com.project.admin.domain.controller.dto.AdminSigninResponse;
+import com.project.admin.controller.dto.AdminSigninResponse;
 import com.project.admin.security.userdatails.CustomAdminDetails;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

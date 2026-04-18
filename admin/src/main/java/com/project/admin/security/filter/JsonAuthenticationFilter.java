@@ -1,6 +1,6 @@
 package com.project.admin.security.filter;
 
-import com.project.admin.domain.controller.dto.AdminSigninRequest;
+import com.project.admin.controller.dto.AdminSigninRequest;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

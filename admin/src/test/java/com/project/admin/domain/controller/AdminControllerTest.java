@@ -1,23 +1,20 @@
 package com.project.admin.domain.controller;
 
-import com.project.admin.domain.controller.dto.AdminSigninRequest;
-import com.project.admin.domain.controller.dto.AdminSigninResponse;
-import com.project.admin.domain.controller.dto.AdminSignupRequest;
+import com.project.admin.controller.dto.AdminSigninRequest;
+import com.project.admin.controller.dto.AdminSignupRequest;
 import com.project.admin.domain.entity.Admin;
-import com.project.admin.domain.service.AdminService;
 import com.project.admin.domain.exception.AdminErrorCode;
 import com.project.admin.domain.exception.AdminException;
 import com.project.admin.security.userdatails.AdminUserDetailsService;
 import com.project.admin.security.userdatails.CustomAdminDetails;
+import com.project.admin.service.AdminService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;

@@ -1,10 +1,9 @@
 package com.project.admin.domain.service;
 
-import com.project.admin.domain.controller.dto.AdminSigninRequest;
-import com.project.admin.domain.controller.dto.AdminSigninResponse;
-import com.project.admin.domain.controller.dto.AdminSignupRequest;
-import com.project.admin.domain.repository.AdminRepository;
+import com.project.admin.controller.dto.AdminSignupRequest;
 import com.project.admin.domain.exception.AdminException;
+import com.project.admin.repository.AdminRepository;
+import com.project.admin.service.AdminService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

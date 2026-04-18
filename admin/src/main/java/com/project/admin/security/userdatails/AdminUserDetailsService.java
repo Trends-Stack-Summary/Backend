@@ -1,7 +1,7 @@
 package com.project.admin.security.userdatails;
 
 import com.project.admin.domain.entity.Admin;
-import com.project.admin.domain.repository.AdminRepository;
+import com.project.admin.repository.AdminRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
