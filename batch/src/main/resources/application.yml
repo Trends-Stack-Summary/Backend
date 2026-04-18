@@ -1,0 +1,71 @@
+server:
+  port: 5500
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: local
+
+r2dbc:
+  host: localhost
+  port: 3306
+  database: quick_stack
+  username: root
+  password: root
+
+aws:
+  secrets:
+    name:
+      github-release-token: local/github-release-token
+
+discord:
+  channel:
+    github-release-notification: "https://discord.com/api/webhooks/1494322730647163044/s1MFAWw2fv2NoGo58acTjjkvIEd1wiwDKPlSL7pJtr57RdUvpnPuI0ZuIOkpMbXDrigP"
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+r2dbc:
+  host: localhost
+  port: 3306
+  database: quick_stack
+  username: root
+  password: root
+
+aws:
+  secrets:
+    name:
+      github-release-token: development/github-release-token
+
+discord:
+  channel:
+    github-release-notification: "https://discord.com/api/webhooks/1494322730647163044/s1MFAWw2fv2NoGo58acTjjkvIEd1wiwDKPlSL7pJtr57RdUvpnPuI0ZuIOkpMbXDrigP"
+
+---
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+r2dbc:
+  host: localhost
+  port: 3306
+  database: quick_stack
+  username: root
+  password: root
+
+aws:
+  secrets:
+    name:
+      github-release-token: production/github-release-token
+
+discord:
+  channel:
+    github-release-notification: "https://discord.com/api/webhooks/1494322911207620789/bI8-QCe6Znnc4i5TnIhEgZjoczBDSKTofoKwEfaoy7-IbN__lq_xa4OIVW17XPVEsD8y"
