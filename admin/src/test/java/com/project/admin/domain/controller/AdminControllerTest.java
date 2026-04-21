@@ -82,7 +82,7 @@ class AdminControllerTest {
     @DisplayName("회원가입 성공")
     void signup() throws Exception {
 
-        AdminSignupRequest request = new AdminSignupRequest("name", "admin123", "password");
+        AdminSignupRequest request = new AdminSignupRequest("name", "admin123", "password1@");
 
         mockMvc.perform(post("/admin/signup")
                         .contentType(MediaType.APPLICATION_JSON)
