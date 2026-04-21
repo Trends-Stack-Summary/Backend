@@ -18,7 +18,6 @@ public class AdminService {
     private final PasswordEncoder passwordEncoder;
 
 
-
     @Transactional
     public void createAdmin(String name, String loginId, String password) {
 
