@@ -1,6 +1,6 @@
 spring:
   application:
-    name: admin
+    name: api
   datasource:
     username: root
     password: root
@@ -8,7 +8,7 @@ spring:
     servlet:
       path: /api
 server:
-  port: 8080
+  port: 8081
 ---
 spring:
   config:
@@ -21,7 +21,6 @@ spring:
     hibernate:
       ddl-auto: none
 
-
 ---
 spring:
   config:
@@ -29,10 +28,14 @@ spring:
       on-profile: dev
 
   datasource:
+
     url: jdbc:mysql://mysql:3306/quick_stack
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
+  mvc:
+    servlet:
+      path: /api
 
 ---
 spring:
@@ -45,3 +48,6 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+  mvc:
+    servlet:
+      path: /api
