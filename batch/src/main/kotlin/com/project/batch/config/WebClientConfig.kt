@@ -33,6 +33,7 @@ class WebClientConfig(
     @Bean(name = ["commonWebClient"])
     fun commonWebClient(): WebClient {
         val httpClient = HttpClient.create()
+            .followRedirect(true)
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, CONNECT_TIMEOUT_MILLIS)
             .responseTimeout(Duration.ofMillis(READ_TIMEOUT_MILLIS))
             .doOnConnected { conn ->
