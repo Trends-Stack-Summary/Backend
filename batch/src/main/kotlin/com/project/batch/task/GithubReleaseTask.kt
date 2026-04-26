@@ -20,7 +20,7 @@ class GithubReleaseTask(
 ) {
 
     @LogExecutionTime
-    @Scheduled(cron = "0 */2 * * * *", zone = "Asia/Seoul")
+//    @Scheduled(cron = "0 */2 * * * *", zone = "Asia/Seoul")
     suspend fun collectGithubReleases() = supervisorScope {
         val releases = githubReleaseCollector.collectAllReleases(TechStack.entries)
         githubReleaseRepository.bulkInsert(releases)

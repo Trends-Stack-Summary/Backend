@@ -25,6 +25,18 @@ dependencies {
     // aop
     implementation("org.aspectj:aspectjweaver")
 
+    // rss
+    implementation("com.rometools:rome:2.1.0")
+
+    // okhttp (WAF 우회용 TLS fingerprint)
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // html crawling
+    implementation("org.jsoup:jsoup:1.18.3")
+
+    // playwright (JS 렌더링 HTML 수집)
+    implementation("com.microsoft.playwright:playwright:1.59.0")
+
     // r2dbc
     implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
     implementation("io.asyncer:r2dbc-mysql")
