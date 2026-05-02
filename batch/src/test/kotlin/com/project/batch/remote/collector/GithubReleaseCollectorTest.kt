@@ -21,10 +21,10 @@ class GithubReleaseCollectorTest {
         val response = githubReleaseResponse(tagName = "v18.0.0")
         coEvery { apiCaller.callAllReleases(techStack.owner, techStack.repo) } returns listOf(response)
 
-        val result = collector.collectAllReleases(listOf(techStack))
+        val result = collector.collectAll(listOf(techStack))
 
         assertThat(result).hasSize(1)
-        assertThat(result[0].techStack).isEqualTo(techStack.name)
+        assertThat(result[0].techStack).isEqualTo(techStack)
         assertThat(result[0].tagName).isEqualTo("v18.0.0")
         assertThat(result[0].prerelease).isFalse()
         assertThat(result[0].draft).isFalse()
@@ -39,7 +39,7 @@ class GithubReleaseCollectorTest {
             githubReleaseResponse(tagName = "v17.0.0"),
         )
 
-        val result = collector.collectAllReleases(listOf(techStack))
+        val result = collector.collectAll(listOf(techStack))
 
         assertThat(result).allMatch { it.status == Status.PENDING }
     }
@@ -51,17 +51,17 @@ class GithubReleaseCollectorTest {
         coEvery { apiCaller.callAllReleases(failStack.owner, failStack.repo) } throws RuntimeException("API Error")
         coEvery { apiCaller.callAllReleases(successStack.owner, successStack.repo) } returns listOf(githubReleaseResponse())
 
-        val result = collector.collectAllReleases(listOf(failStack, successStack))
+        val result = collector.collectAll(listOf(failStack, successStack))
 
         assertThat(result).hasSize(1)
-        assertThat(result[0].techStack).isEqualTo(successStack.name)
+        assertThat(result[0].techStack).isEqualTo(successStack)
     }
 
     @Test
     fun `모든 API 호출 실패 시 빈 리스트를 반환한다`() = runTest {
         coEvery { apiCaller.callAllReleases(any(), any()) } throws RuntimeException("API Error")
 
-        val result = collector.collectAllReleases(listOf(TechStack.REACT, TechStack.NEXT_JS))
+        val result = collector.collectAll(listOf(TechStack.REACT, TechStack.NEXT_JS))
 
         assertThat(result).isEmpty()
     }
@@ -78,11 +78,11 @@ class GithubReleaseCollectorTest {
             githubReleaseResponse(tagName = "v14.0.0"),
         )
 
-        val result = collector.collectAllReleases(listOf(stack1, stack2))
+        val result = collector.collectAll(listOf(stack1, stack2))
 
         assertThat(result).hasSize(3)
-        assertThat(result.filter { it.techStack == stack1.name }).hasSize(2)
-        assertThat(result.filter { it.techStack == stack2.name }).hasSize(1)
+        assertThat(result.filter { it.techStack == stack1 }).hasSize(2)
+        assertThat(result.filter { it.techStack == stack2 }).hasSize(1)
     }
 
     private fun githubReleaseResponse(

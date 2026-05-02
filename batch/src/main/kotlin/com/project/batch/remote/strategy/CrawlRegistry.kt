@@ -1,30 +1,30 @@
-package com.project.batch.config
+package com.project.batch.remote.strategy
 
-import com.project.batch.constants.BlogSource
+import com.project.batch.constants.Source
 
-object BlogCrawlRegistry {
+object CrawlRegistry {
 
-    private val configs = mapOf(
-        BlogSource.NAVER_D2 to HtmlCrawlSpec(
+    private val spec = mapOf(
+        Source.NAVER_D2 to HtmlCrawlSpec(
             listSelector = ".post_list .post_item",
             titleSelector = ".title",
             linkSelector = "a",
             dateSelector = ".date",
-            dateAttribute = "text",
+            useDateText = true,
         ),
-        BlogSource.TOSS_TECH to HtmlCrawlSpec(
+        Source.TOSS_TECH to HtmlCrawlSpec(
             listSelector = "article",
             titleSelector = "h2",
             linkSelector = "a",
             dateSelector = "time",
         ),
-        BlogSource.KAKAO_BANK to HtmlCrawlSpec(
+        Source.KAKAO_BANK to HtmlCrawlSpec(
             listSelector = "article",
             titleSelector = "h2",
             linkSelector = "a",
             dateSelector = "time",
         ),
-        BlogSource.OLIVE_YOUNG to HtmlCrawlSpec(
+        Source.OLIVE_YOUNG to HtmlCrawlSpec(
             listSelector = "article",
             titleSelector = "h2",
             linkSelector = "a",
@@ -32,5 +32,5 @@ object BlogCrawlRegistry {
         ),
     )
 
-    operator fun get(source: BlogSource): HtmlCrawlSpec? = configs[source]
+    operator fun get(source: Source): HtmlCrawlSpec? = spec[source]
 }

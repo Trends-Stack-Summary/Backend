@@ -1,11 +1,11 @@
 package com.project.batch.remote.collector
 
-import com.project.batch.constants.BlogSource
+import com.project.batch.constants.Source
 import com.project.batch.domain.TechBlog
-import com.project.batch.remote.collector.strategy.BlogCollectorStrategy
+import com.project.batch.remote.strategy.blog.BlogCollectorStrategy
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.supervisorScope
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -13,10 +13,12 @@ import org.springframework.stereotype.Component
 class TechBlogCollector(
     private val collectors: List<BlogCollectorStrategy>,
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
+    companion object {
+        private val log = LoggerFactory.getLogger(TechBlogCollector::class.java)
+    }
 
-    suspend fun collectAll(sources: List<BlogSource>): List<TechBlog> =
-        coroutineScope {
+    suspend fun collectAll(sources: List<Source>): List<TechBlog> =
+        supervisorScope {
             sources.map { source ->
                 async {
                     runCatching {

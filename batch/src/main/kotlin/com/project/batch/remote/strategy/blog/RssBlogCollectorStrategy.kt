@@ -1,16 +1,21 @@
-package com.project.batch.remote.collector.strategy
+package com.project.batch.remote.strategy.blog
 
-import com.project.batch.constants.BlogSource
+import com.project.batch.constants.Source
 import com.project.batch.constants.CollectionType
 import com.project.batch.domain.TechBlog
 import com.project.batch.utils.Snowflake
 import com.rometools.rome.io.SyndFeedInput
 import com.rometools.rome.io.XmlReader
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.suspendCancellableCoroutine
+import okhttp3.Call
+import okhttp3.Callback
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
 import org.springframework.http.HttpHeaders
+import java.io.IOException
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import org.springframework.stereotype.Component
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
@@ -24,8 +29,7 @@ class RssBlogCollectorStrategy(
 ) : BlogCollectorStrategy {
 
     companion object {
-        private const val USER_AGENT =
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        private const val USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
         private val trustAllCerts = object : X509TrustManager {
             override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
@@ -49,7 +53,7 @@ class RssBlogCollectorStrategy(
 
     override fun supports(type: CollectionType): Boolean = type == CollectionType.RSS
 
-    override suspend fun collect(source: BlogSource): List<TechBlog> = withContext(Dispatchers.IO) {
+    override suspend fun collect(source: Source): List<TechBlog> {
         val request = Request.Builder()
             .url(source.url)
             .header(HttpHeaders.USER_AGENT, source.userAgent ?: USER_AGENT)
@@ -58,14 +62,10 @@ class RssBlogCollectorStrategy(
             .apply { source.referer?.let { header(HttpHeaders.REFERER, it) } }
             .build()
 
-        val bytes = httpClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) return@withContext emptyList()
-            response.body?.bytes() ?: return@withContext emptyList()
-        }
-
+        val bytes = httpClient.newCall(request).await() ?: return emptyList()
         val feed = SyndFeedInput().build(XmlReader(bytes.inputStream()))
 
-        feed.entries.mapNotNull { entry ->
+        return feed.entries.mapNotNull { entry ->
             val title = entry.title?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
             val url = (entry.link ?: entry.uri)?.takeIf { it.isNotBlank() } ?: return@mapNotNull null
             val publishedAt = (entry.publishedDate ?: entry.updatedDate)?.toInstant() ?: return@mapNotNull null
@@ -76,7 +76,20 @@ class RssBlogCollectorStrategy(
                 title = title,
                 url = url,
                 publishedAt = publishedAt,
+                tags = entry.categories.mapNotNull { it.name?.takeIf { name -> name.isNotBlank() } },
             )
         }
+    }
+
+    private suspend fun Call.await(): ByteArray? = suspendCancellableCoroutine { cont ->
+        enqueue(object : Callback {
+            override fun onResponse(call: Call, response: Response) {
+                cont.resume(response.use { if (it.isSuccessful) it.body?.bytes() else null })
+            }
+            override fun onFailure(call: Call, e: IOException) {
+                cont.resumeWithException(e)
+            }
+        })
+        cont.invokeOnCancellation { cancel() }
     }
 }
