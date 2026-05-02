@@ -5,7 +5,7 @@ import com.project.batch.domain.GithubRelease
 import com.project.batch.remote.GithubReleaseApiCaller
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.supervisorScope
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -14,10 +14,12 @@ import java.time.Instant
 class GithubReleaseCollector(
     private val githubReleaseApiCaller: GithubReleaseApiCaller,
 ) {
-    private val log = LoggerFactory.getLogger(javaClass)
+    companion object {
+        private val log = LoggerFactory.getLogger(GithubReleaseCollector::class.java)
+    }
 
-    suspend fun collectAllReleases(techStacks: List<TechStack>): List<GithubRelease> =
-        coroutineScope {
+    suspend fun collectAll(techStacks: List<TechStack>): List<GithubRelease> =
+        supervisorScope {
             techStacks.map { techStack ->
                 async {
                     runCatching { githubReleaseApiCaller.callAllReleases(techStack.owner, techStack.repo) }
@@ -25,7 +27,7 @@ class GithubReleaseCollector(
                         .getOrElse { emptyList() }
                         .map { release ->
                             GithubRelease(
-                                techStack = techStack.name,
+                                techStack = techStack,
                                 tagName = release.tagName,
                                 name = release.name,
                                 body = release.body,

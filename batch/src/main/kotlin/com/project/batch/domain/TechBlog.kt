@@ -1,6 +1,6 @@
 package com.project.batch.domain
 
-import com.project.batch.constants.BlogRegion
+import com.project.batch.constants.Region
 import com.project.batch.constants.Status
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
@@ -10,9 +10,10 @@ import java.time.Instant
 data class TechBlog(
     @Id val id: Long,
     val source: String,
-    val region: BlogRegion,
+    val region: Region,
     val title: String,
     val url: String,
     val publishedAt: Instant,
+    val tags: List<String>,
     val status: Status = Status.PENDING,
 )

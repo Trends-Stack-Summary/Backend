@@ -1,6 +1,6 @@
-package com.project.batch.remote.collector.strategy
+package com.project.batch.remote.strategy.blog
 
-import com.project.batch.constants.BlogSource
+import com.project.batch.constants.Source
 import com.project.batch.constants.CollectionType
 import com.project.batch.domain.TechBlog
 
@@ -8,5 +8,5 @@ interface BlogCollectorStrategy {
 
     fun supports(type: CollectionType): Boolean
 
-    suspend fun collect(source: BlogSource): List<TechBlog>
+    suspend fun collect(source: Source): List<TechBlog>
 }

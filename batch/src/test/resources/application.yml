@@ -1,0 +1,14 @@
+batch:
+  cron:
+    github-release: "0 */2 * * * *"
+    tech-blog: "0 */2 * * * *"
+
+aws:
+  secrets:
+    name:
+      github-release-token: test/github-release-token
+
+discord:
+  channel:
+    github-release-notification: test/github-release-notification
+    techblog-notification: test/techblog-notification

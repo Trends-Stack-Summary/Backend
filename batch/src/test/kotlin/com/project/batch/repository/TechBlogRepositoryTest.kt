@@ -1,8 +1,9 @@
 package com.project.batch.repository
 
 import com.project.batch.config.MySqlTestContainer
+import com.project.batch.constants.Region
+import com.project.batch.constants.Source
 import com.project.batch.constants.Status
-import com.project.batch.constants.TechStack
 import com.project.batch.fixture.TestFixtures
 import io.mockk.mockk
 import kotlinx.coroutines.reactor.awaitSingle
@@ -26,6 +27,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient
 import java.time.Instant
 import java.time.LocalDate
+import java.util.concurrent.atomic.AtomicLong
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.NONE,
@@ -35,7 +37,7 @@ import java.time.LocalDate
     ]
 )
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class GithubReleaseRepositoryTest {
+class TechBlogRepositoryTest {
 
     @TestConfiguration
     class TestAwsConfig {
@@ -59,10 +61,12 @@ class GithubReleaseRepositoryTest {
     }
 
     @Autowired
-    lateinit var repository: GithubReleaseRepository
+    lateinit var repository: TechBlogRepository
 
     @Autowired
     lateinit var databaseClient: DatabaseClient
+
+    private val idGenerator = AtomicLong(1000L)
 
     companion object {
         init {
@@ -77,6 +81,8 @@ class GithubReleaseRepositoryTest {
             registry.add("r2dbc.database") { MySqlTestContainer.getDatabaseName() }
             registry.add("r2dbc.username") { MySqlTestContainer.getUsername() }
             registry.add("r2dbc.password") { MySqlTestContainer.getPassword() }
+            registry.add("aws.secrets.name.github-release-token") { "test/github-token" }
+            registry.add("discord.channel.github-release-notification") { "test/discord-webhook" }
         }
     }
 
@@ -84,16 +90,16 @@ class GithubReleaseRepositoryTest {
     fun createTable() {
         runBlocking {
             databaseClient.sql("""
-                CREATE TABLE IF NOT EXISTS github_release (
-                    tech_stack   VARCHAR(100) NOT NULL,
-                    tag_name     VARCHAR(100) NOT NULL,
-                    name         VARCHAR(500) NULL,
-                    body         MEDIUMTEXT   NULL,
-                    published_at DATETIME(6)  NOT NULL,
-                    prerelease   TINYINT(1)   NOT NULL DEFAULT 0,
-                    draft        TINYINT(1)   NOT NULL DEFAULT 0,
-                    status       VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
-                    PRIMARY KEY (tech_stack, tag_name)
+                CREATE TABLE IF NOT EXISTS tech_blog (
+                    id           BIGINT        NOT NULL PRIMARY KEY,
+                    source       VARCHAR(50)   NOT NULL,
+                    region       VARCHAR(20)   NOT NULL,
+                    title        VARCHAR(255)  NULL,
+                    url          VARCHAR(1000) NOT NULL,
+                    published_at DATETIME(6)   NOT NULL,
+                    status       VARCHAR(20)   NOT NULL DEFAULT 'PENDING',
+                    created_at   DATETIME(6)   NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                    CONSTRAINT uq_tech_blog_url UNIQUE (url(768))
                 )
             """.trimIndent()).then().awaitSingleOrNull()
         }
@@ -102,56 +108,72 @@ class GithubReleaseRepositoryTest {
     @BeforeEach
     fun setUp() {
         runBlocking {
-            databaseClient.sql("TRUNCATE TABLE github_release").then().awaitSingleOrNull()
+            databaseClient.sql("TRUNCATE TABLE tech_blog").then().awaitSingleOrNull()
         }
+        idGenerator.set(1000L)
     }
 
     @Test
-    fun `신규 릴리즈 insert 시 PENDING 상태로 저장된다`() = runTest {
-        repository.bulkInsert(listOf(TestFixtures.githubRelease(techStack = TechStack.REACT, tagName = "v18.0.0")))
+    fun `신규 블로그 insert 시 PENDING 상태로 저장된다`() = runTest {
+        repository.bulkInsert(listOf(techBlog()))
 
-        val result = repository.selectReleaseTodayPublished(LocalDate.of(2026, 4, 19))
+        val result = repository.selectBlogsPublishedToday(LocalDate.of(2026, 4, 19))
         assertThat(result[0].status).isEqualTo(Status.PENDING)
     }
 
     @Test
-    fun `동일한 복합키로 재insert 시 기존 status가 유지된다`() = runTest {
-        repository.bulkInsert(listOf(TestFixtures.githubRelease(techStack = TechStack.REACT, tagName = "v18.0.0")))
-        databaseClient.sql("UPDATE github_release SET status = 'PUBLISHED' WHERE tech_stack = 'REACT' AND tag_name = 'v18.0.0'")
+    fun `동일한 url로 재insert 시 기존 status가 유지된다`() = runTest {
+        val url = "https://tech.kakao.com/2026/04/19/duplicate"
+        repository.bulkInsert(listOf(techBlog(url = url)))
+        databaseClient.sql("UPDATE tech_blog SET status = 'PUBLISHED' WHERE url = '$url'")
             .fetch().rowsUpdated().awaitSingle()
 
-        repository.bulkInsert(listOf(TestFixtures.githubRelease(techStack = TechStack.REACT, tagName = "v18.0.0")))
+        repository.bulkInsert(listOf(techBlog(id = idGenerator.getAndIncrement(), url = url)))
 
-        val result = repository.selectReleaseTodayPublished(LocalDate.of(2026, 4, 19))
+        val result = repository.selectBlogsPublishedToday(LocalDate.of(2026, 4, 19))
         assertThat(result[0].status).isEqualTo(Status.PUBLISHED)
     }
 
     @Test
-    fun `오늘 발행된 릴리즈만 조회된다`() = runTest {
+    fun `오늘 발행된 블로그만 조회된다`() = runTest {
         repository.bulkInsert(listOf(
             // 2026-04-19T00:00:00Z = 2026-04-19T09:00 KST → 포함
-            TestFixtures.githubRelease(TechStack.REACT, "v18.0.0", publishedAt = Instant.parse("2026-04-19T00:00:00Z")),
+            techBlog(url = "https://a.com/1", publishedAt = Instant.parse("2026-04-19T00:00:00Z")),
             // 2026-04-18T14:59:59Z = 2026-04-18T23:59 KST → 미포함
-            TestFixtures.githubRelease(TechStack.NEXT_JS, "v14.0.0", publishedAt = Instant.parse("2026-04-18T14:59:59Z")),
+            techBlog(url = "https://b.com/2", publishedAt = Instant.parse("2026-04-18T14:59:59Z")),
             // 2026-04-19T15:00:00Z = 2026-04-20T00:00 KST → 미포함
-            TestFixtures.githubRelease(TechStack.VUE, "v3.0.0", publishedAt = Instant.parse("2026-04-19T15:00:00Z")),
+            techBlog(url = "https://c.com/3", publishedAt = Instant.parse("2026-04-19T15:00:00Z")),
         ))
 
-        val result = repository.selectReleaseTodayPublished(LocalDate.of(2026, 4, 19))
+        val result = repository.selectBlogsPublishedToday(LocalDate.of(2026, 4, 19))
 
         assertThat(result).hasSize(1)
-        assertThat(result[0].techStack).isEqualTo(TechStack.REACT)
+        assertThat(result[0].url).isEqualTo("https://a.com/1")
     }
 
     @Test
-    fun `오늘 발행된 릴리즈가 없으면 빈 리스트를 반환한다`() = runTest {
+    fun `오늘 발행된 블로그가 없으면 빈 리스트를 반환한다`() = runTest {
         repository.bulkInsert(listOf(
-            TestFixtures.githubRelease(TechStack.REACT, "v18.0.0", publishedAt = Instant.parse("2026-04-18T00:00:00Z")),
+            techBlog(publishedAt = Instant.parse("2026-04-18T00:00:00Z")),
         ))
 
-        val result = repository.selectReleaseTodayPublished(LocalDate.of(2026, 4, 19))
+        val result = repository.selectBlogsPublishedToday(LocalDate.of(2026, 4, 19))
 
         assertThat(result).isEmpty()
     }
 
+    private fun techBlog(
+        id: Long = idGenerator.getAndIncrement(),
+        source: String = Source.KAKAO_TECH.name,
+        region: Region = Region.DOMESTIC,
+        title: String = "테스트 블로그",
+        url: String = "https://tech.kakao.com/2026/04/19/test-${id}",
+        publishedAt: Instant = Instant.parse("2026-04-19T00:00:00Z"),
+    ) = TestFixtures.techBlog(
+        source = source,
+        region = region,
+        title = title,
+        url = url,
+        publishedAt = publishedAt,
+    ).copy(id = id)
 }
