@@ -4,6 +4,7 @@ import com.project.batch.constants.Status
 import com.project.batch.constants.TechStack
 import com.project.batch.remote.GithubReleaseApiCaller
 import com.project.batch.remote.dto.GithubReleaseResponse
+import com.project.batch.utils.Snowflake
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -13,7 +14,7 @@ import org.junit.jupiter.api.Test
 class GithubReleaseCollectorTest {
 
     private val apiCaller = mockk<GithubReleaseApiCaller>()
-    private val collector = GithubReleaseCollector(apiCaller)
+    private val collector = GithubReleaseCollector(apiCaller, Snowflake())
 
     @Test
     fun `API 호출 성공 시 GithubRelease로 올바르게 변환된다`() = runTest {
