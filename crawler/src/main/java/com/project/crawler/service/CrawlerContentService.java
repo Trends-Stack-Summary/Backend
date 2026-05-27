@@ -48,5 +48,7 @@ public class CrawlerContentService {
 
         entity.updateFailed(CrawlStatus.FAILED_TIMEOUT, errorName);
         techBlogContentRepository.save(entity);
+        techBlog.markAsFailed();
+        techBlogRepository.save(techBlog);
     }
 }

@@ -72,11 +72,11 @@ batch:
     tech-blog: "0 * */3 * * *"
 
 r2dbc:
-  host: localhost
+  host: quick-stack.che2qyo4y77m.ap-northeast-2.rds.amazonaws.com  # ← 변경
   port: 3306
   database: quick_stack
-  username: root
-  password: root
+  username: admin
+  password: ${DB_PASSWORD}
 
 aws:
   secrets:
