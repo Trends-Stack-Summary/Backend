@@ -18,7 +18,7 @@ data class ReleaseNoteListResponse(
 }
 
 data class ReleaseNoteResponse(
-    val id: Long,
+    val id: String,
     val techStack: TechStack,
     val tagName: String,
     val name: String?,
@@ -27,7 +27,7 @@ data class ReleaseNoteResponse(
 ) {
     companion object {
         fun from(result: ReleaseNoteResult) = ReleaseNoteResponse(
-            id = result.id,
+            id = result.id.toString(),
             techStack = result.techStack,
             tagName = result.tagName,
             name = result.name,

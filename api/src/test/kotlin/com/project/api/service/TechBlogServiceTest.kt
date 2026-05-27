@@ -4,7 +4,8 @@ import com.project.api.constants.Region
 import com.project.api.constants.Source
 import com.project.api.constants.Status
 import com.project.api.entity.TechBlog
-import com.project.api.repository.SourceStatProjection
+import com.project.api.entity.company.CompanyMappingResult
+import com.project.api.entity.company.PopularCompanyMappingResult
 import com.project.api.repository.TechBlogRepository
 import io.mockk.every
 import io.mockk.mockk
@@ -33,12 +34,6 @@ class TechBlogServiceTest {
         tags = null,
     )
 
-    private fun sourceStat(source: Source, totalCount: Long, lastPostedAt: LocalDateTime?) =
-        object : SourceStatProjection {
-            override val source: Source = source
-            override val totalCount: Long = totalCount
-            override val lastPostedAt: LocalDateTime? = lastPostedAt
-        }
 
     private fun <T : Any> pageOf(content: List<T>, pageable: Pageable = PageRequest.of(0, 20)) =
         PageImpl(content, pageable, content.size.toLong())
@@ -128,7 +123,7 @@ class TechBlogServiceTest {
     @Test
     fun `회사 목록 조회 시 서비스에 등록된 전체 회사가 반환된다`() {
         // given
-        every { repository.findSourceStats() } returns emptyList()
+        every { repository.findCompanies() } returns emptyList()
 
         // when
         val result = service.getCompanies()
@@ -143,8 +138,8 @@ class TechBlogServiceTest {
     fun `회사 목록 조회 시 각 회사의 총 게시글 수와 최근 포스팅일이 포함된다`() {
         // given
         val lastPostedAt = LocalDateTime.of(2026, 5, 1, 12, 0)
-        every { repository.findSourceStats() } returns listOf(
-            sourceStat(Source.TOSS, totalCount = 122L, lastPostedAt = lastPostedAt),
+        every { repository.findCompanies() } returns listOf(
+            CompanyMappingResult(Source.TOSS, totalCount = 122L, lastPostedAt = lastPostedAt),
         )
 
         // when
@@ -159,7 +154,7 @@ class TechBlogServiceTest {
     @Test
     fun `게시글이 없는 회사는 totalPostCount가 0이고 lastPostedAt이 null이다`() {
         // given
-        every { repository.findSourceStats() } returns emptyList()
+        every { repository.findCompanies() } returns emptyList()
 
         // when
         val result = service.getCompanies()
@@ -173,7 +168,7 @@ class TechBlogServiceTest {
     @Test
     fun `region 필터로 조회하면 해당 지역의 회사만 반환된다`() {
         // given
-        every { repository.findSourceStats() } returns emptyList()
+        every { repository.findCompanies() } returns emptyList()
 
         // when
         val result = service.getCompanies(region = Region.DOMESTIC)
@@ -186,7 +181,7 @@ class TechBlogServiceTest {
     @Test
     fun `region 필터 없이 조회하면 국내외 전체 회사가 반환된다`() {
         // given
-        every { repository.findSourceStats() } returns emptyList()
+        every { repository.findCompanies() } returns emptyList()
 
         // when
         val result = service.getCompanies(region = null)
@@ -199,14 +194,14 @@ class TechBlogServiceTest {
     @Test
     fun `인기 블로그 조회 시 totalPostCount 내림차순으로 정렬된다`() {
         // given
-        every { repository.findSourceStats() } returns listOf(
-            sourceStat(Source.WOOWAHAN, totalCount = 72L, lastPostedAt = null),
-            sourceStat(Source.TOSS, totalCount = 122L, lastPostedAt = null),
-            sourceStat(Source.NAVER_D2, totalCount = 124L, lastPostedAt = null),
+        every { repository.findPopularCompanies(any()) } returns listOf(
+            PopularCompanyMappingResult(Source.NAVER_D2, totalCount = 124L, lastPostedAt = null),
+            PopularCompanyMappingResult(Source.TOSS, totalCount = 122L, lastPostedAt = null),
+            PopularCompanyMappingResult(Source.WOOWAHAN, totalCount = 72L, lastPostedAt = null),
         )
 
         // when
-        val result = service.getPopularCompanies(size = 3)
+        val result = service.getPopularCompanies()
 
         // then
         assertThat(result.companies.map { it.name })
@@ -214,31 +209,14 @@ class TechBlogServiceTest {
     }
 
     @Test
-    fun `인기 블로그 조회 시 size만큼만 반환된다`() {
-        // given
-        every { repository.findSourceStats() } returns listOf(
-            sourceStat(Source.NAVER_D2, totalCount = 124L, lastPostedAt = null),
-            sourceStat(Source.TOSS, totalCount = 122L, lastPostedAt = null),
-            sourceStat(Source.WOOWAHAN, totalCount = 72L, lastPostedAt = null),
-        )
-
-        // when
-        val result = service.getPopularCompanies(size = 2)
-
-        // then
-        assertThat(result.companies).hasSize(2)
-        assertThat(result.companies.first().name).isEqualTo(Source.NAVER_D2.name)
-    }
-
-    @Test
     fun `인기 블로그 조회 시 게시글이 없는 회사는 포함되지 않는다`() {
         // given
-        every { repository.findSourceStats() } returns listOf(
-            sourceStat(Source.TOSS, totalCount = 122L, lastPostedAt = null),
+        every { repository.findPopularCompanies(any()) } returns listOf(
+            PopularCompanyMappingResult(Source.TOSS, totalCount = 122L, lastPostedAt = null),
         )
 
         // when
-        val result = service.getPopularCompanies(size = 10)
+        val result = service.getPopularCompanies()
 
         // then
         assertThat(result.companies.map { it.name }).containsOnly(Source.TOSS.name)
@@ -249,9 +227,9 @@ class TechBlogServiceTest {
     fun `DOMESTIC 필터 조회 시 국내 회사만 반환되고 게시글 수와 최근 포스팅일과 블로그 URL이 포함된다`() {
         // given
         val lastPostedAt = LocalDateTime.of(2026, 5, 1, 12, 0)
-        every { repository.findSourceStats() } returns listOf(
-            sourceStat(Source.KAKAO, totalCount = 50L, lastPostedAt = lastPostedAt),
-            sourceStat(Source.NETFLIX, totalCount = 30L, lastPostedAt = lastPostedAt),
+        every { repository.findCompanies() } returns listOf(
+            CompanyMappingResult(Source.KAKAO, totalCount = 50L, lastPostedAt = lastPostedAt),
+            CompanyMappingResult(Source.NETFLIX, totalCount = 30L, lastPostedAt = lastPostedAt),
         )
 
         // when
@@ -269,9 +247,9 @@ class TechBlogServiceTest {
     fun `INTERNATIONAL 필터 조회 시 해외 회사만 반환되고 게시글 수와 최근 포스팅일과 블로그 URL이 포함된다`() {
         // given
         val lastPostedAt = LocalDateTime.of(2026, 4, 20, 9, 0)
-        every { repository.findSourceStats() } returns listOf(
-            sourceStat(Source.NETFLIX, totalCount = 88L, lastPostedAt = lastPostedAt),
-            sourceStat(Source.KAKAO, totalCount = 50L, lastPostedAt = lastPostedAt),
+        every { repository.findCompanies() } returns listOf(
+            CompanyMappingResult(Source.NETFLIX, totalCount = 88L, lastPostedAt = lastPostedAt),
+            CompanyMappingResult(Source.KAKAO, totalCount = 50L, lastPostedAt = lastPostedAt),
         )
 
         // when
@@ -288,7 +266,7 @@ class TechBlogServiceTest {
     @Test
     fun `DOMESTIC 필터 조회 시 게시글 없는 국내 회사는 totalPostCount가 0이고 lastPostedAt이 null이다`() {
         // given
-        every { repository.findSourceStats() } returns emptyList()
+        every { repository.findCompanies() } returns emptyList()
 
         // when
         val result = service.getCompanies(region = Region.DOMESTIC)
@@ -305,7 +283,7 @@ class TechBlogServiceTest {
     @Test
     fun `INTERNATIONAL 필터 조회 시 게시글 없는 해외 회사는 totalPostCount가 0이고 lastPostedAt이 null이다`() {
         // given
-        every { repository.findSourceStats() } returns emptyList()
+        every { repository.findCompanies() } returns emptyList()
 
         // when
         val result = service.getCompanies(region = Region.INTERNATIONAL)
