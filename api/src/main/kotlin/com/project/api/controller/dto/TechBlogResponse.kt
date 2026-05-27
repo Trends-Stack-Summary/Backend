@@ -19,7 +19,7 @@ data class TechBlogListResponse(
 }
 
 data class TechBlogResponse(
-    val id: Long,
+    val id: String,
     val source: Source,
     val ko: String,
     val en: String,
@@ -30,7 +30,7 @@ data class TechBlogResponse(
 ) {
     companion object {
         fun from(result: TechBlogResult) = TechBlogResponse(
-            id = result.id,
+            id = result.id.toString(),
             source = result.source,
             ko = result.source.ko,
             en = result.source.en,
