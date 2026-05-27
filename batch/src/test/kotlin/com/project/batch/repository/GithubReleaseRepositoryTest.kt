@@ -2,9 +2,12 @@ package com.project.batch.repository
 
 import com.project.batch.config.MySqlTestContainer
 import com.project.batch.constants.Status
-import com.project.batch.domain.GithubRelease
+import com.project.batch.constants.TechStack
+import com.project.batch.fixture.TestFixtures
 import io.mockk.mockk
 import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
@@ -39,8 +42,11 @@ class GithubReleaseRepositoryTest {
         @Bean @Primary
         fun secretsManagerClient(): SecretsManagerClient = mockk(relaxed = true)
 
-        @Bean("discordWebhookUrl") @Primary
-        fun discordWebhookUrl(): String = "https://test-webhook"
+        @Bean("githubReleaseDiscordWebhookUrl") @Primary
+        fun githubReleaseDiscordWebhookUrl(): String = "https://test-webhook/github"
+
+        @Bean("techblogDiscordWebhookUrl") @Primary
+        fun techblogDiscordWebhookUrl(): String = "https://test-webhook/techblog"
 
         @Bean("githubToken") @Primary
         fun githubToken(): String = "test-token"
@@ -71,36 +77,38 @@ class GithubReleaseRepositoryTest {
             registry.add("r2dbc.database") { MySqlTestContainer.getDatabaseName() }
             registry.add("r2dbc.username") { MySqlTestContainer.getUsername() }
             registry.add("r2dbc.password") { MySqlTestContainer.getPassword() }
-            registry.add("aws.secrets.name.github-release-token") { "test/github-token" }
-            registry.add("discord.channel.github-release-notification") { "test/discord-webhook" }
         }
     }
 
     @BeforeAll
     fun createTable() {
-        databaseClient.sql("""
-            CREATE TABLE IF NOT EXISTS github_release (
-                tech_stack   VARCHAR(100) NOT NULL,
-                tag_name     VARCHAR(100) NOT NULL,
-                name         VARCHAR(500) NULL,
-                body         MEDIUMTEXT   NULL,
-                published_at DATETIME(6)  NOT NULL,
-                prerelease   TINYINT(1)   NOT NULL DEFAULT 0,
-                draft        TINYINT(1)   NOT NULL DEFAULT 0,
-                status       VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
-                PRIMARY KEY (tech_stack, tag_name)
-            )
-        """.trimIndent()).then().block()
+        runBlocking {
+            databaseClient.sql("""
+                CREATE TABLE IF NOT EXISTS github_release (
+                    tech_stack   VARCHAR(100) NOT NULL,
+                    tag_name     VARCHAR(100) NOT NULL,
+                    name         VARCHAR(500) NULL,
+                    body         MEDIUMTEXT   NULL,
+                    published_at DATETIME(6)  NOT NULL,
+                    prerelease   TINYINT(1)   NOT NULL DEFAULT 0,
+                    draft        TINYINT(1)   NOT NULL DEFAULT 0,
+                    status       VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
+                    PRIMARY KEY (tech_stack, tag_name)
+                )
+            """.trimIndent()).then().awaitSingleOrNull()
+        }
     }
 
     @BeforeEach
     fun setUp() {
-        databaseClient.sql("TRUNCATE TABLE github_release").then().block()
+        runBlocking {
+            databaseClient.sql("TRUNCATE TABLE github_release").then().awaitSingleOrNull()
+        }
     }
 
     @Test
     fun `신규 릴리즈 insert 시 PENDING 상태로 저장된다`() = runTest {
-        repository.bulkInsert(listOf(githubRelease(techStack = "REACT", tagName = "v18.0.0")))
+        repository.bulkInsert(listOf(TestFixtures.githubRelease(techStack = TechStack.REACT, tagName = "v18.0.0")))
 
         val result = repository.selectReleaseTodayPublished(LocalDate.of(2026, 4, 19))
         assertThat(result[0].status).isEqualTo(Status.PENDING)
@@ -108,11 +116,11 @@ class GithubReleaseRepositoryTest {
 
     @Test
     fun `동일한 복합키로 재insert 시 기존 status가 유지된다`() = runTest {
-        repository.bulkInsert(listOf(githubRelease(techStack = "REACT", tagName = "v18.0.0")))
+        repository.bulkInsert(listOf(TestFixtures.githubRelease(techStack = TechStack.REACT, tagName = "v18.0.0")))
         databaseClient.sql("UPDATE github_release SET status = 'PUBLISHED' WHERE tech_stack = 'REACT' AND tag_name = 'v18.0.0'")
             .fetch().rowsUpdated().awaitSingle()
 
-        repository.bulkInsert(listOf(githubRelease(techStack = "REACT", tagName = "v18.0.0")))
+        repository.bulkInsert(listOf(TestFixtures.githubRelease(techStack = TechStack.REACT, tagName = "v18.0.0")))
 
         val result = repository.selectReleaseTodayPublished(LocalDate.of(2026, 4, 19))
         assertThat(result[0].status).isEqualTo(Status.PUBLISHED)
@@ -122,23 +130,23 @@ class GithubReleaseRepositoryTest {
     fun `오늘 발행된 릴리즈만 조회된다`() = runTest {
         repository.bulkInsert(listOf(
             // 2026-04-19T00:00:00Z = 2026-04-19T09:00 KST → 포함
-            githubRelease("REACT", "v18.0.0", publishedAt = Instant.parse("2026-04-19T00:00:00Z")),
+            TestFixtures.githubRelease(TechStack.REACT, "v18.0.0", publishedAt = Instant.parse("2026-04-19T00:00:00Z")),
             // 2026-04-18T14:59:59Z = 2026-04-18T23:59 KST → 미포함
-            githubRelease("NEXT_JS", "v14.0.0", publishedAt = Instant.parse("2026-04-18T14:59:59Z")),
+            TestFixtures.githubRelease(TechStack.NEXT_JS, "v14.0.0", publishedAt = Instant.parse("2026-04-18T14:59:59Z")),
             // 2026-04-19T15:00:00Z = 2026-04-20T00:00 KST → 미포함
-            githubRelease("VUE", "v3.0.0", publishedAt = Instant.parse("2026-04-19T15:00:00Z")),
+            TestFixtures.githubRelease(TechStack.VUE, "v3.0.0", publishedAt = Instant.parse("2026-04-19T15:00:00Z")),
         ))
 
         val result = repository.selectReleaseTodayPublished(LocalDate.of(2026, 4, 19))
 
         assertThat(result).hasSize(1)
-        assertThat(result[0].techStack).isEqualTo("REACT")
+        assertThat(result[0].techStack).isEqualTo(TechStack.REACT)
     }
 
     @Test
     fun `오늘 발행된 릴리즈가 없으면 빈 리스트를 반환한다`() = runTest {
         repository.bulkInsert(listOf(
-            githubRelease("REACT", "v18.0.0", publishedAt = Instant.parse("2026-04-18T00:00:00Z")),
+            TestFixtures.githubRelease(TechStack.REACT, "v18.0.0", publishedAt = Instant.parse("2026-04-18T00:00:00Z")),
         ))
 
         val result = repository.selectReleaseTodayPublished(LocalDate.of(2026, 4, 19))
@@ -146,17 +154,4 @@ class GithubReleaseRepositoryTest {
         assertThat(result).isEmpty()
     }
 
-    private fun githubRelease(
-        techStack: String = "REACT",
-        tagName: String = "v1.0.0",
-        publishedAt: Instant = Instant.parse("2026-04-19T00:00:00Z"),
-    ) = GithubRelease(
-        techStack = techStack,
-        tagName = tagName,
-        name = null,
-        body = null,
-        publishedAt = publishedAt,
-        prerelease = false,
-        draft = false,
-    )
 }

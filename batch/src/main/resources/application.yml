@@ -23,6 +23,12 @@ aws:
 discord:
   channel:
     github-release-notification: local/github-release-notification
+    techblog-notification: local/techblog-notification
+
+batch:
+  cron:
+    github-release: "0 */2 * * * *"
+    tech-blog: "0 */2 * * * *"
 
 ---
 
@@ -46,6 +52,12 @@ aws:
 discord:
   channel:
     github-release-notification: development/github-release-notification
+    techblog-notification: development/techblog-notification
+
+batch:
+  cron:
+    github-release: "0 */2 * * * *"
+    tech-blog: "0 */2 * * * *"
 
 ---
 
@@ -54,12 +66,17 @@ spring:
     activate:
       on-profile: prod
 
+batch:
+  cron:
+    github-release: "0 * */3 * * *"
+    tech-blog: "0 * */3 * * *"
+
 r2dbc:
-  host: localhost
+  host: quick-stack.che2qyo4y77m.ap-northeast-2.rds.amazonaws.com  # ← 변경
   port: 3306
   database: quick_stack
-  username: root
-  password: root
+  username: admin
+  password: ${DB_PASSWORD}
 
 aws:
   secrets:
@@ -69,3 +86,4 @@ aws:
 discord:
   channel:
     github-release-notification: production/github-release-notification
+    techblog-notification: production/techblog-notification

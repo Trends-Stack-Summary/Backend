@@ -6,6 +6,7 @@ import io.netty.handler.timeout.WriteTimeoutHandler
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpHeaders
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.netty.http.client.HttpClient
@@ -26,8 +27,11 @@ class WebClientConfig(
         private const val CONNECT_TIMEOUT_MILLIS = 5_000
         private const val READ_TIMEOUT_MILLIS = 10_000L
         private const val WRITE_TIMEOUT_MILLIS = 10_000L
+        private const val TECH_BLOG_READ_TIMEOUT_MILLIS = 15_000L
+        private const val TECH_BLOG_MAX_IN_MEMORY_SIZE = 5 * 1024 * 1024
         private const val GITHUB_BASE_URL = "https://api.github.com"
         private const val GITHUB_MAX_IN_MEMORY_SIZE = 10 * 1024 * 1024
+        private const val BROWSER_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     }
 
     @Bean(name = ["commonWebClient"])
@@ -46,13 +50,31 @@ class WebClientConfig(
             .build()
     }
 
+    @Bean(name = ["techBlogWebClient"])
+    fun techBlogWebClient(): WebClient {
+        val httpClient = HttpClient.create()
+            .followRedirect(true)
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, CONNECT_TIMEOUT_MILLIS)
+            .responseTimeout(Duration.ofMillis(TECH_BLOG_READ_TIMEOUT_MILLIS))
+            .doOnConnected { conn ->
+                conn.addHandlerLast(ReadTimeoutHandler(TECH_BLOG_READ_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS))
+                    .addHandlerLast(WriteTimeoutHandler(WRITE_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS))
+            }
+
+        return WebClient.builder()
+            .clientConnector(ReactorClientHttpConnector(httpClient))
+            .defaultHeader(HttpHeaders.USER_AGENT, BROWSER_USER_AGENT)
+            .codecs { it.defaultCodecs().maxInMemorySize(TECH_BLOG_MAX_IN_MEMORY_SIZE) }
+            .build()
+    }
+
     @Bean(name = ["githubWebClient"])
     fun githubWebClient(): WebClient {
         val token = objectMapper.readTree(
             secretsManagerClient.getSecretValue(
                 GetSecretValueRequest.builder().secretId(secretName).build()
             ).secretString()
-        ).get(secretName).asString()
+        )[secretName]!!.asString()
 
         val httpClient = HttpClient.create()
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, CONNECT_TIMEOUT_MILLIS)

@@ -1,13 +1,12 @@
 package com.project.batch.repository
 
 import com.project.batch.constants.Status
+import com.project.batch.constants.TechStack
 import com.project.batch.domain.GithubRelease
+import com.project.batch.utils.toInstantRange
 import kotlinx.coroutines.reactor.awaitSingle
-import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.stereotype.Repository
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -20,34 +19,33 @@ class GithubReleaseRepository(
     suspend fun bulkInsert(releases: List<GithubRelease>) {
         if (releases.isEmpty()) return
 
+        val placeholders = releases.joinToString(", ") { "(?, ?, ?, ?, ?, ?, ?, ?, ?)" }
         val sql = """
-            INSERT INTO github_release (tech_stack, tag_name, name, body, published_at, prerelease, draft, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO github_release (id, tech_stack, tag_name, name, body, published_at, prerelease, draft, status)
+            VALUES $placeholders
             ON DUPLICATE KEY UPDATE tech_stack = tech_stack
         """.trimIndent()
 
-        databaseClient.inConnection { connection ->
-            val statement = connection.createStatement(sql)
-            releases.forEachIndexed { index, release ->
-                statement.bind(0, release.techStack)
-                statement.bind(1, release.tagName)
-                if (release.name != null) statement.bind(2, release.name) else statement.bindNull(2, String::class.java)
-                if (release.body != null) statement.bind(3, release.body) else statement.bindNull(3, String::class.java)
-                statement.bind(4, release.publishedAt)
-                statement.bind(5, release.prerelease)
-                statement.bind(6, release.draft)
-                statement.bind(7, release.status.code)
-                if (index < releases.size - 1) statement.add()
-            }
-            Flux.from(statement.execute())
-                .flatMap { result -> Mono.from(result.rowsUpdated) }
-                .then()
-        }.awaitSingleOrNull()
+        var spec = databaseClient.sql(sql)
+        releases.forEachIndexed { i, release ->
+            val base = i * 9
+            spec = spec.bind(base, release.id)
+            spec = spec.bind(base + 1, release.techStack.code)
+            spec = spec.bind(base + 2, release.tagName)
+            spec = if (release.name != null) spec.bind(base + 3, release.name) else spec.bindNull(base + 3, String::class.java)
+            spec = if (release.body != null) spec.bind(base + 4, release.body) else spec.bindNull(base + 4, String::class.java)
+            spec = spec
+                .bind(base + 5, release.publishedAt)
+                .bind(base + 6, release.prerelease)
+                .bind(base + 7, release.draft)
+                .bind(base + 8, release.status.code)
+        }
+
+        spec.fetch().rowsUpdated().awaitSingle()
     }
 
     suspend fun selectReleaseTodayPublished(date: LocalDate): List<GithubRelease> {
-        val start = date.atStartOfDay(clock.zone).toInstant()
-        val end = date.plusDays(1).atStartOfDay(clock.zone).toInstant()
+        val (start, end) = date.toInstantRange(clock.zone)
         return databaseClient.sql("""
             SELECT * FROM github_release
             WHERE published_at >= :start AND published_at < :end
@@ -56,14 +54,15 @@ class GithubReleaseRepository(
             .bind("end", end)
             .map { row ->
                 GithubRelease(
-                    techStack = row.get("tech_stack", String::class.java)!!,
-                    tagName = row.get("tag_name", String::class.java)!!,
-                    name = row.get("name", String::class.java),
-                    body = row.get("body", String::class.java),
-                    publishedAt = row.get("published_at", Instant::class.java)!!,
-                    prerelease = row.get("prerelease", Boolean::class.java)!!,
-                    draft = row.get("draft", Boolean::class.java)!!,
-                    status = Status.fromCode(row.get("status", String::class.java)!!),
+                    id = row["id", Long::class.java]!!,
+                    techStack = TechStack.fromCode(row["tech_stack", String::class.java]!!),
+                    tagName = row["tag_name", String::class.java]!!,
+                    name = row["name", String::class.java],
+                    body = row["body", String::class.java],
+                    publishedAt = row["published_at", Instant::class.java]!!,
+                    prerelease = row["prerelease", Boolean::class.java]!!,
+                    draft = row["draft", Boolean::class.java]!!,
+                    status = Status.fromCode(row["status", String::class.java]!!),
                 )
             }
             .all()
