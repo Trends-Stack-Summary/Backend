@@ -26,7 +26,7 @@ class TechBlog(
     @Column(name = "title")
     val title: String,
 
-    @Column(name = "url", length = 1000)
+    @Column(name = "url", length = 500)
     val url: String,
 
     @Column(name = "published_at")
