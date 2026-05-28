@@ -8,6 +8,11 @@ spring:
 server:
   port: 8082
 ---
+
+batch:
+  cron:
+    crawl: "0 0/1 * * * *"  # 1분마다
+
 spring:
   config:
     activate:
@@ -30,5 +35,9 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
+# application-prod.yml
+batch:
+  cron:
+    crawl: "0 0 0/1 * * *"  # 1시간마다
 
 

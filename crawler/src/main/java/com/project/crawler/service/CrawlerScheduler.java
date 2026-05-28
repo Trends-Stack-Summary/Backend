@@ -19,7 +19,7 @@ public class CrawlerScheduler {
 
     private final CrawlStorageService crawlStorageService;
 
-    @Scheduled(cron = "0 0/1 * * * *")
+    @Scheduled(cron = "${batch.cron.crawl}")
     public void scheduleCrawl() {
         List<TechBlog> techBlogs = techBlogRepository.findByStatusAndLimitSource(
                 Status.PENDING, 1, 10
