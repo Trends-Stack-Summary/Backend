@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain
 import software.amazon.awssdk.auth.credentials.ContainerCredentialsProvider
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.auth.credentials.WebIdentityTokenFileCredentialsProvider
 import software.amazon.awssdk.regions.Region
@@ -15,11 +16,7 @@ class AwsConfig {
 
     @Bean
     fun awsCredentialsProvider(): AwsCredentialsProvider =
-        AwsCredentialsProviderChain.builder()
-            .addCredentialsProvider(ProfileCredentialsProvider.create())
-            .addCredentialsProvider(ContainerCredentialsProvider.builder().build())
-            .addCredentialsProvider(WebIdentityTokenFileCredentialsProvider.builder().build())
-            .build()
+        DefaultCredentialsProvider.builder().build();
 
     @Bean
     fun secretsManagerClient(awsCredentialsProvider: AwsCredentialsProvider): SecretsManagerClient =
