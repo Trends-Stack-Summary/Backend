@@ -1,5 +1,6 @@
 package com.project.admin.controller;
 
+import com.project.admin.controller.spec.SummaryApi;
 import com.project.admin.service.SummaryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,12 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/summary")
 @RequiredArgsConstructor
-public class SummaryController {
+public class SummaryController implements SummaryApi {
 
     private final SummaryService summaryService;
 
     @PostMapping("/{techBlogId}")
-    public ResponseEntity<String> summary(@PathVariable String techBlogId) throws Exception {
+    public ResponseEntity<String> summary(@PathVariable String techBlogId) {
 
         Long id = Long.valueOf(techBlogId);
 
