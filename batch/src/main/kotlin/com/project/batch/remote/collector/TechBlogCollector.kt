@@ -28,6 +28,7 @@ class TechBlogCollector(
                     }
                         .onFailure { log.error("Failed to collect from ${source.displayName}", it) }
                         .getOrElse { emptyList() }
+                        .take(10)
                 }
             }.awaitAll().flatten()
         }
