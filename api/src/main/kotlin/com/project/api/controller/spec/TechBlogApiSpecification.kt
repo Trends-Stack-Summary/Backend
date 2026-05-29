@@ -3,6 +3,7 @@ package com.project.api.controller.spec
 import com.project.api.constants.Region
 import com.project.api.controller.dto.CompanyListResponse
 import com.project.api.controller.dto.PopularCompanyListResponse
+import com.project.api.controller.dto.TechBlogDetailResponse
 import com.project.api.controller.dto.TechBlogListResponse
 import com.project.api.controller.dto.TechBlogSearchCondition
 import com.project.api.controller.dto.TechBlogSourceSearchCondition
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.web.bind.annotation.PathVariable
 
 @Tag(name = "Tech Blog", description = "기술 블로그 API")
 interface TechBlogApiSpecification {
@@ -48,4 +50,13 @@ interface TechBlogApiSpecification {
     fun getTechBlogsBySource(
         @Valid searchCondition: TechBlogSourceSearchCondition,
     ): TechBlogListResponse
+
+
+    @Operation(
+        summary = "기술 블로그 상세 조회",
+        parameters = [
+            Parameter(name = "id", description = "ID", example = "318616951859150856"),
+        ]
+    )
+    fun getTechBlog(@PathVariable("id") id: String): TechBlogDetailResponse
 }

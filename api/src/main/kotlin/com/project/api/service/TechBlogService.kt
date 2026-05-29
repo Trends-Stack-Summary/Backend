@@ -2,10 +2,13 @@ package com.project.api.service
 
 import com.project.api.constants.Region
 import com.project.api.constants.Source
+import com.project.api.exception.CommonErrorCode
+import com.project.api.exception.QuickStackException
 import com.project.api.repository.TechBlogRepository
 import com.project.api.service.dto.CompanyResult
 import com.project.api.service.dto.CompanyResults
 import com.project.api.service.dto.PageResult
+import com.project.api.service.dto.TechBlogDetailResult
 import com.project.api.service.dto.TechBlogResult
 import com.project.api.service.dto.TechBlogResults
 import org.springframework.data.domain.PageRequest
@@ -52,5 +55,12 @@ class TechBlogService(
             techBlogs = result.content.map { TechBlogResult.from(it) },
             pagination = PageResult.from(result),
         )
+    }
+
+    //상세 조회
+    fun getTechBlog(id: Long): TechBlogDetailResult {
+        val techBlog = techBlogRepository.findByIdAndPUBLISHED(id) ?: throw QuickStackException(
+            CommonErrorCode.INVALID_REQUEST)
+        return TechBlogDetailResult.from(techBlog);
     }
 }

@@ -2,12 +2,15 @@ package com.project.api.controller
 
 import com.project.api.constants.Category
 import com.project.api.controller.dto.CategoryResponseList
+import com.project.api.controller.dto.ReleaseNoteDetailResponse
 import com.project.api.controller.dto.ReleaseNoteListResponse
+import com.project.api.controller.dto.ReleaseNoteResponse
 import com.project.api.controller.dto.ReleaseNoteSearchCondition
 import com.project.api.controller.spec.ReleaseNoteApiSpecification
 import com.project.api.service.ReleaseNoteService
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
@@ -33,4 +36,10 @@ class ReleaseNoteController(
                 searchCondition.size
             )
         )
+
+    @GetMapping("/{id}")
+    override fun getReleaseNote(@PathVariable("id") id: String): ReleaseNoteDetailResponse {
+        val longId = id.toLong()
+        return ReleaseNoteDetailResponse.from(releaseNoteService.getReleaseNote(longId))
+    }
 }

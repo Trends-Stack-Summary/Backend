@@ -1,12 +1,14 @@
 package com.project.api.controller.spec
 
 import com.project.api.controller.dto.CategoryResponseList
+import com.project.api.controller.dto.ReleaseNoteDetailResponse
 import com.project.api.controller.dto.ReleaseNoteListResponse
 import com.project.api.controller.dto.ReleaseNoteSearchCondition
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
+import org.springframework.web.bind.annotation.PathVariable
 
 @Tag(name = "Release Note", description = "릴리즈 노트 API")
 interface ReleaseNoteApiSpecification {
@@ -26,4 +28,12 @@ interface ReleaseNoteApiSpecification {
     fun getReleaseNotes(
         @Valid searchCondition: ReleaseNoteSearchCondition
     ): ReleaseNoteListResponse
+
+    @Operation(
+        summary = "릴리즈 노트 상세 조회",
+        parameters = [
+            Parameter(name = "id", description = "ID", example = "318616951859150856"),
+        ]
+    )
+    fun getReleaseNote(@PathVariable("id") id: String): ReleaseNoteDetailResponse
 }

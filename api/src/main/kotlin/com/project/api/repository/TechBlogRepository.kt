@@ -57,4 +57,11 @@ interface TechBlogRepository : JpaRepository<TechBlog, Long> {
     """
     )
     fun findPopularCompanies(@Param("sources") sources: List<Source>): List<PopularCompanyMappingResult>
+
+    @Query("""
+        SELECT t FROM TechBlog t
+        WHERE t.id = :id
+        AND t.status = com.project.api.constants.Status.PUBLISHED
+    """)
+    fun findByIdAndPUBLISHED(@Param("id") id: Long):TechBlog?
 }
