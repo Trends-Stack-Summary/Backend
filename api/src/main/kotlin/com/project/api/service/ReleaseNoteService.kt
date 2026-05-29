@@ -2,8 +2,11 @@ package com.project.api.service
 
 import com.project.api.constants.Category
 import com.project.api.constants.TechStack
+import com.project.api.exception.CommonErrorCode
+import com.project.api.exception.QuickStackException
 import com.project.api.repository.GithubReleaseRepository
 import com.project.api.service.dto.PageResult
+import com.project.api.service.dto.ReleaseNoteDetailResults
 import com.project.api.service.dto.ReleaseNoteResult
 import com.project.api.service.dto.ReleaseNoteResults
 import org.springframework.data.domain.PageRequest
@@ -38,5 +41,12 @@ class ReleaseNoteService(
             releaseNotes = result.content.map { ReleaseNoteResult.from(it) },
             pagination = PageResult.from(result),
         )
+    }
+
+    //상세 조회
+    fun getReleaseNote(id: Long): ReleaseNoteDetailResults {
+        val release = githubReleaseRepository.findByIdAndPUBLISHED(id) ?: throw QuickStackException(
+            CommonErrorCode.INVALID_REQUEST)
+        return ReleaseNoteDetailResults.from(release);
     }
 }

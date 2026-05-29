@@ -2,6 +2,7 @@ package com.project.api.repository
 
 import com.project.api.constants.TechStack
 import com.project.api.entity.GithubRelease
+import com.project.api.entity.TechBlog
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
@@ -48,4 +49,11 @@ interface GithubReleaseRepository : JpaRepository<GithubRelease, Long> {
         @Param("keyword") keyword: String?,
         pageable: Pageable,
     ): Page<GithubRelease>
+
+    @Query("""
+        SELECT g FROM GithubRelease g
+        WHERE g.id = :id
+        AND g.status = com.project.api.constants.Status.PUBLISHED
+    """)
+    fun findByIdAndPUBLISHED(@Param("id") id: Long):GithubRelease?
 }

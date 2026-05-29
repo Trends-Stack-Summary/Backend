@@ -36,6 +36,9 @@ class TechBlog(
     @Column(name = "status")
     val status: Status,
 
+    @OneToOne(mappedBy = "techBlog",fetch = FetchType.LAZY)
+    val approval: TechBlogApproval? =null,
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "tags", columnDefinition = "json")
     val tags: List<String>?,
