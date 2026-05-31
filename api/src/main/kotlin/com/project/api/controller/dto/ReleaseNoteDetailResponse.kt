@@ -6,7 +6,7 @@ import com.project.api.service.dto.ReleaseNoteDetailResults
 import java.time.LocalDateTime
 
 data class ReleaseNoteDetailResponse(
-    val id: Long,
+    val id: String,
     val techStack: TechStack,
     val tagName: String,
     val name: String?,
@@ -24,7 +24,8 @@ data class ReleaseNoteDetailResponse(
             body = release.body,
             publishedAt = release.publishedAt,
             prerelease = release.prerelease,
-            category = Category.from(release.techStack)
+            category = Category.from(release.techStack,
+            )
         )
     }
 }

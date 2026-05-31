@@ -19,7 +19,7 @@ public record PageResponse<T>(
         return new PageResponse<>(
                 page.getContent(),
                 new Pagination(
-                        page.getTotalPages(),
+                        page.getTotalElements(),
                         page.getSize(),
                         currentPage
                 )
