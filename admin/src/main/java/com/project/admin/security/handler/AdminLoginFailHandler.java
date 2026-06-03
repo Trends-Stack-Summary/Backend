@@ -1,7 +1,5 @@
 package com.project.admin.security.handler;
 
-import com.project.admin.domain.exception.admin.AdminErrorCode;
-import com.project.admin.exception.ErrorResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,7 +22,7 @@ public class AdminLoginFailHandler implements AuthenticationFailureHandler {
         response.setStatus(400);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        String result = objectMapper.writeValueAsString(LoginResponse.fall());
+        String result = objectMapper.writeValueAsString(AdminResponse.fail());
         response.getWriter().write(result);
     }
 }

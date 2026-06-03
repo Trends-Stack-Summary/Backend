@@ -22,7 +22,7 @@ public class AdminLoginSuccessHandler implements AuthenticationSuccessHandler {
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        String result = objectMapper.writeValueAsString(LoginResponse.ok());
+        String result = objectMapper.writeValueAsString(AdminResponse.ok());
         response.getWriter().write(result);
     }
 }
