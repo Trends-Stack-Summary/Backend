@@ -53,7 +53,7 @@ public class SecurityConfig {
                 );
         http.exceptionHandling(exception ->
                 exception.authenticationEntryPoint((request, response, authException) ->
-                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED)
                 )
         );
 
