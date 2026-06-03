@@ -3,11 +3,12 @@ package com.project.admin.controller.spec;
 import com.project.admin.controller.dto.request.admin.AdminSigninRequest;
 import com.project.admin.controller.dto.request.admin.AdminSignupRequest;
 import com.project.admin.controller.dto.response.MeResponse;
-import com.project.admin.security.handler.LoginResponse;
+import com.project.admin.security.handler.AdminResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,7 +22,7 @@ public interface AdminApi {
     ResponseEntity<Void> signup(@Valid @RequestBody AdminSignupRequest request);
 
     @Operation(summary = "관리자 로그인")
-    LoginResponse signin(AdminSigninRequest request);
+    AdminResponse signin(AdminSigninRequest request);
 
     @Operation(summary = "세션 확인",
             responses = {
@@ -29,6 +30,9 @@ public interface AdminApi {
                     @ApiResponse(responseCode = "401", description = "비로그인 상태", content = @Content)
             })
     public ResponseEntity<MeResponse> me(Authentication authentication);
+
+    @Operation(summary = "로그아웃")
+    public ResponseEntity<AdminResponse> signout(HttpSession session);
 
 
 }

@@ -4,9 +4,10 @@ import com.project.admin.controller.dto.request.admin.AdminSigninRequest;
 import com.project.admin.controller.dto.request.admin.AdminSignupRequest;
 import com.project.admin.controller.dto.response.MeResponse;
 import com.project.admin.controller.spec.AdminApi;
-import com.project.admin.security.handler.LoginResponse;
+import com.project.admin.security.handler.AdminResponse;
 import com.project.admin.security.userdatails.CustomAdminDetails;
 import com.project.admin.service.AdminService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,9 +28,9 @@ public class AdminController implements AdminApi {
     }
 
     @PostMapping("/signin")
-    public LoginResponse signin(AdminSigninRequest request) {
+    public AdminResponse signin(AdminSigninRequest request) {
 
-        return LoginResponse.ok();
+        return AdminResponse.ok();
     }
 
     @GetMapping("/me")
@@ -40,5 +41,11 @@ public class AdminController implements AdminApi {
         }
         return ResponseEntity.ok(new MeResponse(details.getUsername()));
 
+    }
+
+    @PostMapping("/signout")
+    public ResponseEntity<AdminResponse> signout(HttpSession session) {
+        session.invalidate();
+        return  ResponseEntity.ok(AdminResponse.signOut());
     }
 }
