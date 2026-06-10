@@ -1,6 +1,12 @@
 server:
   port: 5500
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health
+
 ---
 
 spring:
@@ -29,12 +35,6 @@ batch:
   cron:
     github-release: "0 */2 * * * *"
     tech-blog: "0 */2 * * * *"
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: prometheus, health
 
 ---
 
