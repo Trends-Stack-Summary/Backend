@@ -21,6 +21,12 @@ aws:
     name:
       gemini-api-key: geminiApiKey
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health
+
 ---
 spring:
   config:

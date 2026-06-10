@@ -31,6 +31,12 @@ spring:
     hibernate:
       ddl-auto: update
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health
+
 ---
 
 spring:

@@ -30,6 +30,12 @@ batch:
     github-release: "0 */2 * * * *"
     tech-blog: "0 */2 * * * *"
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, health
+
 ---
 
 spring:
