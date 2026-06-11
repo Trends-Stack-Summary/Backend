@@ -1,3 +1,7 @@
+spring:
+  application:
+    name: batch
+
 server:
   port: 5500
 
@@ -6,6 +10,9 @@ management:
     web:
       exposure:
         include: prometheus, health
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
 ---
 
