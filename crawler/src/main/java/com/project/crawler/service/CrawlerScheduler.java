@@ -19,15 +19,15 @@ public class CrawlerScheduler {
 
     private final CrawlStorageService crawlStorageService;
 
-    @Scheduled(cron = "${batch.cron.crawl}")
-    public void scheduleCrawl() {
-        List<TechBlog> techBlogs = techBlogRepository.findByStatusAndLimitSource(
-                Status.PENDING, 1, 10
-        );
-        if (techBlogs.isEmpty()) {
-            return;
-        }
-        log.info("크롤링 대상  url={}", techBlogs.size());
-        techBlogs.forEach(crawlStorageService::crawl);
-    }
+//    @Scheduled(cron = "${batch.cron.crawl}")
+//    public void scheduleCrawl() {
+//        List<TechBlog> techBlogs = techBlogRepository.findByStatusAndLimitSource(
+//                Status.PENDING, 1, 10
+//        );
+//        if (techBlogs.isEmpty()) {
+//            return;
+//        }
+//        log.info("크롤링 대상  url={}", techBlogs.size());
+//        techBlogs.forEach(crawlStorageService::crawl);
+//    }
 }
