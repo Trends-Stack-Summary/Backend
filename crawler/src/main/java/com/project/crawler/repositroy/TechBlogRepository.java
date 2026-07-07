@@ -3,6 +3,7 @@ package com.project.crawler.repositroy;
 import com.project.crawler.constants.Status;
 import com.project.crawler.entity.TechBlog;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -27,4 +28,6 @@ public interface TechBlogRepository extends JpaRepository<TechBlog, Long> {
             @Param("limitSource") int limitSource,
             @Param("totalLimit") int totalLimit
     );
+
+    Optional<TechBlog> findByUrl(String url);
 }
