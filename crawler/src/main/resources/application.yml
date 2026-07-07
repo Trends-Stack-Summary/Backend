@@ -7,6 +7,14 @@ spring:
 
   application:
     name: crawler
+  rabbitmq:
+    host: localhost
+    username: ${rabbitMQ_username:guest}
+    password: ${rabbitMQ_password:guest}
+    port: 5672
+    listener:
+      simple:
+        prefetch: 1
 
 server:
   port: 8082
@@ -23,7 +31,7 @@ management:
 
 batch:
   cron:
-    crawl: "0 0/1 * * * *"  # 1분마다
+    crawl: "0 * */6 * * *"
 
 spring:
   config:
@@ -43,13 +51,21 @@ spring:
       on-profile: prod
 
   datasource:
-    url: jdbc:mysql://quick-stack.che2qyo4y77m.ap-northeast-2.rds.amazonaws.com:3306/quick_stack?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    url: jdbc:mysql://local-mysql:3306/quick_stack?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
   jpa:
     hibernate:
       ddl-auto: none
+  rabbitmq:
+    host: local-rabbitmq
+    username: ${rabbitMQ_username}
+    password: ${rabbitMQ_password}
+    port: 5672
+    listener:
+      simple:
+        prefetch: 1
 # application-prod.yml
 batch:
   cron:
-    crawl: "0 0 0/1 * * *"  # 1시간마다
+    crawl: "0 0 0/6 * * *"
 
 
