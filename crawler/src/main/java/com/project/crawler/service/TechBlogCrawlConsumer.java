@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class TechBogCrawlConsumer {
+public class TechBlogCrawlConsumer {
 
     private final CrawlStorageService crawlStorageService;
 

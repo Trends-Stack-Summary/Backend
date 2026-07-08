@@ -1,12 +1,10 @@
 package com.project.crawler.service;
 
 import com.project.crawler.entity.TechBlog;
-import com.project.crawler.exception.BaseException;
-import com.project.crawler.exception.CrawlerErrorCode;
 import com.project.crawler.repositroy.TechBlogRepository;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -22,7 +20,14 @@ public class CrawlStorageService {
 
 
     public void crawl(String url) {
-        TechBlog techBlog = techBlogRepository.findByUrl(url).orElseThrow(() -> new IllegalStateException("해당 글이 존재하지 않습니다"));
+        Optional<TechBlog> target = techBlogRepository.findByUrl(url);
+
+        if(target.isEmpty()) {
+            log.info("저장되지 않은 URL={}",url);
+            return;
+        }
+
+        TechBlog techBlog = target.get();
         try {
             String content = crawlService.crawl(url);
             crawlerContentService.saveSuccess(techBlog, content);
