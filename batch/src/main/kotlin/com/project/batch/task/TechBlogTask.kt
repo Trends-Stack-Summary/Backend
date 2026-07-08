@@ -5,6 +5,7 @@ import com.project.batch.remote.collector.TechBlogCollector
 import com.project.batch.repository.TechBlogRepository
 import com.project.batch.service.NotificationService
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.scheduling.annotation.Scheduled
@@ -35,12 +36,14 @@ class TechBlogTask(
         transactionalOperator.executeAndAwait { techBlogRepository.bulkInsert(blogs) }
 
         log.info("기술 블로그 저장 완료. RabbitMQ 시작. size: ${blogs.size}")
-        blogs.forEach{blog ->
-            rabbitTemplate.convertAndSend(
-                "crawlerExchange",
-                "crawlRouting",
-                blog.url
-            )
+        withContext(kotlinx.coroutines.Dispatchers.IO) {
+            blogs.forEach { blog ->
+                rabbitTemplate.convertAndSend(
+                    "crawlerExchange",
+                    "crawlRouting",
+                    blog.url
+                )
+            }
         }
         notifyTodayBlogs()
         log.info("기술 블로그 수집 완료")
