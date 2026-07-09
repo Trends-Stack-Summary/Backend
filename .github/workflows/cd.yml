@@ -123,7 +123,8 @@ jobs:
               --name $REPOSITORY \
               --network quick-stack \
               -e SPRING_PROFILES_ACTIVE=prod \
-              -e DB_PASSWORD=$DB_PASSWORD \
+              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
               -e rabbitMQ_username=${{ secrets.rabbitMQ_username }} \
               -e rabbitMQ_password=${{ secrets.rabbitMQ_password }} \
               $REGISTRY/$REPOSITORY:latest"
@@ -132,8 +133,8 @@ jobs:
               --name $REPOSITORY \
               --network quick-stack \
               -e SPRING_PROFILES_ACTIVE=prod \
-              -e SPRING_DATASOURCE_USERNAME=root \
-              -e SPRING_DATASOURCE_PASSWORD=$DB_PASSWORD \
+              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
               -e rabbitMQ_username=${{ secrets.rabbitMQ_username }} \
               -e rabbitMQ_password=${{ secrets.rabbitMQ_password }} \
               -p $PORT:$PORT \

@@ -79,6 +79,8 @@ spring:
       keepalive-time: 60000             # 1분마다 유휴 커넥션 생존 확인 (DB가 먼저 끊은 커넥션을 풀에서 사전 제거)
       connection-test-query: SELECT 1   # 커넥션 획득 시 유효성 검증 (SSL 연결 포함)
     url: jdbc:mysql://local-mysql:3306/quick_stack?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: none
