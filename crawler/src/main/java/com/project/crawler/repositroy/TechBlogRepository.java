@@ -12,8 +12,6 @@ import org.springframework.data.repository.query.Param;
 
 public interface TechBlogRepository extends JpaRepository<TechBlog, Long> {
 
-
-
     Optional<TechBlog> findByUrl(String url);
 
     @Query("select t from TechBlog  t where t.status= :status AND t.publishedAt < :nowTime")

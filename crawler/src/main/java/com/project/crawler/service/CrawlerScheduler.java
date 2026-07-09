@@ -8,7 +8,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.data.domain.Limit;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -19,14 +18,13 @@ public class CrawlerScheduler {
 
     private final TechBlogRepository techBlogRepository;
 
-    private final CrawlStorageService crawlStorageService;
     private final RabbitTemplate rabbitTemplate;
 
     @Scheduled(cron = "${batch.cron.crawl}")
     public void scheduleCrawl() {
-        LocalDateTime ThreeHourAgo = LocalDateTime.now().minusHours(3);
+        LocalDateTime threeHourAgo = LocalDateTime.now().minusHours(3);
         List<TechBlog> techBlogs = techBlogRepository.findByStatusAndCreatedAtBefore(
-                Status.PENDING, ThreeHourAgo
+                Status.PENDING, threeHourAgo
         );
         if (techBlogs.isEmpty()) {
             return;
@@ -40,6 +38,5 @@ public class CrawlerScheduler {
                 log.error("재전송 실패 URL={}, ERROR={}",techBlog.getUrl(),e.getMessage());
             }
         }
-
     }
 }
