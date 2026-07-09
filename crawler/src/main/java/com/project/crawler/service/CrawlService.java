@@ -1,9 +1,11 @@
 package com.project.crawler.service;
 
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.resilience.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -22,34 +24,25 @@ public class CrawlService {
         this.crawlingRestClient = crawlingRestClient;
     }
 
+    @Retryable(
+            includes = {HttpServerErrorException.class,
+                    HttpClientErrorException.TooManyRequests.class},
+            maxRetries = 2,
+            delay = 1000,
+            multiplier = 2.0,
+            timeUnit = TimeUnit.MILLISECONDS
+
+    )
     public String crawl(String url) {
 
-        int maxRetry = 2;
-        int attempt = 0;
+        String html = crawlingRestClient.get()
+                .uri(url)
+                .header("User-Agent", USER_AGENT)
+                .header("Referer", "https://www.google.com")
+                .retrieve()
+                .body(String.class);
 
-        while (true) {
-            try {
-                String html = crawlingRestClient.get()
-                        .uri(url)
-                        .header("User-Agent", USER_AGENT)
-                        .header("Referer", "https://www.google.com")
-                        .retrieve()
-                        .body(String.class);
-                Document doc = Jsoup.parse(html);
-                return doc.body().text();
-            } catch (HttpServerErrorException |
-                     HttpClientErrorException.TooManyRequests e) {
-                attempt++;
-                log.warn("크롤링 재시도 {}/{} url ={}", attempt, maxRetry, url);
-                if (attempt > maxRetry) {
-                    throw e;
-                }
-                try {
-                    Thread.sleep(1000L * attempt);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-        }
+        Document doc = Jsoup.parse(html);
+        return doc.body().text();
     }
 }

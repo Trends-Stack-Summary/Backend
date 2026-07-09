@@ -1,9 +1,10 @@
 package com.project.crawler.service;
 
 import com.project.crawler.entity.TechBlog;
+import com.project.crawler.repositroy.TechBlogRepository;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -15,17 +16,26 @@ public class CrawlStorageService {
     private final CrawlService crawlService;
 
     private final CrawlerContentService crawlerContentService;
+    private final TechBlogRepository techBlogRepository;
 
-    @Async("crawlerExecutor")
-    public void crawl(TechBlog techBlog) {
+
+    public void crawl(String url) {
+        Optional<TechBlog> target = techBlogRepository.findByUrl(url);
+
+        if(target.isEmpty()) {
+            log.info("저장되지 않은 URL={}",url);
+            return;
+        }
+
+        TechBlog techBlog = target.get();
         try {
-            String content = crawlService.crawl(techBlog.getUrl());
+            String content = crawlService.crawl(url);
             crawlerContentService.saveSuccess(techBlog, content);
         } catch (HttpClientErrorException.Forbidden e) {
-            log.warn("403 url={}", techBlog.getUrl());
+            log.warn("403 url={}", url);
             crawlerContentService.handle403(techBlog);
         } catch (Exception e) {
-            log.warn("크롤링 실패 url ={}", techBlog.getUrl());
+            log.warn("크롤링 실패 url ={}", url);
             log.info("오류 ={}", e.getMessage());
             crawlerContentService.handleTimeout(techBlog, e.getClass().getSimpleName());
         }
