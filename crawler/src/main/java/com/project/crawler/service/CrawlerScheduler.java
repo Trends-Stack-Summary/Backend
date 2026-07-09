@@ -24,9 +24,9 @@ public class CrawlerScheduler {
 
     @Scheduled(cron = "${batch.cron.crawl}")
     public void scheduleCrawl() {
-        LocalDateTime ThreeHourAgo = LocalDateTime.now().minusHours(3);
-        List<TechBlog> techBlogs = techBlogRepository.findByStatusAndCreatedAtBefore(
-                Status.PENDING, ThreeHourAgo
+        LocalDateTime threeHoursAgo = LocalDateTime.now().minusHours(3);
+        List<TechBlog> techBlogs = techBlogRepository.findByStatusAndPublishedAtBefore(
+                Status.PENDING, threeHoursAgo
         );
         if (techBlogs.isEmpty()) {
             return;
