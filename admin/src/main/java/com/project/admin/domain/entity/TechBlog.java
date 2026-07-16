@@ -40,4 +40,6 @@ public class TechBlog {
     @Column(name = "tags", columnDefinition = "TEXT")
     private List<String> tags;
 
+
+
 }
