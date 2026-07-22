@@ -7,6 +7,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,9 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @Profile("local")
+@Slf4j
 public class MockDataController {
 
     private final TechBlogRepository techBlogRepository;
+    private final RabbitTemplate rabbitTemplate;
 
     @PostMapping("/mock/{count}")
     public String insertMockData(@PathVariable int count) {
